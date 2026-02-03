@@ -1,0 +1,46 @@
+# -----------------------------
+# Build / CMake / Ninja
+# -----------------------------
+build/
+build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+.ninja_deps
+.ninja_log
+
+# -----------------------------
+# Qt / moc / autogen
+# -----------------------------
+*_autogen/
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# -----------------------------
+# Editor / IDE
+# -----------------------------
+.vscode/
+.idea/
+*.user
+*.user.*
+*.autosave
+*.swp
+*.swo
+
+# -----------------------------
+# OS / Temp
+# -----------------------------
+.DS_Store
+Thumbs.db
+*~
+*.tmp
+*.log
+core
+core.*
+
+# -----------------------------
+# Optional: Qt Creator
+# -----------------------------
+CMakeLists.txt.user
