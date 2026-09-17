@@ -33,8 +33,9 @@ Diese liegen immer **über** dem Livebild.
 
 ### Camera
 - Zuständig für Fotoaufnahmen
-- DSLR via gphoto2
+- DSLR via gphoto2 (als eigener Prozess, blockiert das UI nicht)
 - Genau ein Bild pro Auslösung
+- Ergebnis kommt asynchron per Signal `captured()` / `captureFailed()`
 
 ---
 
@@ -45,8 +46,9 @@ Diese liegen immer **über** dem Livebild.
 - Beendet Slideshow
 - Startet niemals ein Foto
 
-### TriggerThread
-- Physischer Button (GPIO)
+### Trigger
+- Abstrakter Auslöser mit Signal `triggered()`
+- Implementierungen: GPIO-Button (Pi), Tastatur, Timer (Tests)
 - Startet Countdown + Foto
 
 ---
@@ -61,14 +63,21 @@ Diese liegen immer **über** dem Livebild.
 
 ---
 
-## Zustandsmodell (vereinfacht)
+## Zustandsmodell
 
-- Slideshow
-- Countdown
-- Fotoanzeige
-- LiveView
+```
+Slideshow --Touch--> LiveView --Timeout--> Slideshow
+Slideshow/LiveView --Button--> Countdown --0--> Capturing
+Capturing --captured--> ShowPhoto --Timeout--> LiveView
+Capturing --captureFailed--> LiveView (mit Fehlermeldung)
+```
 
-Der Wechsel erfolgt ausschließlich ereignisgesteuert.
+Der Wechsel erfolgt ausschließlich ereignisgesteuert. Während Countdown,
+Capturing und ShowPhoto werden weitere Auslöser ignoriert.
+
+### Hardware-Auswahl
+`HardwareFactory` wählt die Backends anhand der Konfiguration.
+`auto` bedeutet: echte Hardware im Pi-Build, Dummies und Tastatur am Host.
 
 ---
 

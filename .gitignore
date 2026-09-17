@@ -23,6 +23,7 @@ qrc_*.cpp
 # -----------------------------
 .vscode/
 .idea/
+.qtcreator/
 *.user
 *.user.*
 *.autosave
@@ -37,10 +38,16 @@ Thumbs.db
 *~
 *.tmp
 *.log
-core
-core.*
+/core
+/core.*
 
 # -----------------------------
 # Optional: Qt Creator
 # -----------------------------
 CMakeLists.txt.user
+
+# -----------------------------
+# Lokale Konfiguration
+# -----------------------------
+config.json
+Config.js

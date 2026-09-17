@@ -79,31 +79,86 @@ Die Fotobox kombiniert:
 
 ```
 src/
-├── core/                 # Konfiguration, Dateiwatcher
-│   ├── Config.*
-│   └── FileWatcher.*
+├── core/                    # Konfiguration, Dateiwatcher
+│   ├── Config.*             # JSON-Konfiguration mit Standardwerten
+│   └── FileWatcher.*        # beobachtet den Bildordner
 │
-├── hardware/             # Kameras & Hardware
-│   ├── Camera.*          # DSLR (gphoto2 / Dummy)
-│   ├── LiveViewCamera.*  # Raspi Cam (Livebild)
-│   └── TriggerThread.*   # Button
+├── hardware/                # Kameras & Auslöser
+│   ├── Camera.*             # DSLR-Interface (asynchron)
+│   ├── CameraDummy.*        # Testbild
+│   ├── CameraGPhoto.*       # gphoto2 als Prozess
+│   ├── LiveViewCamera.*     # Livebild-Interface
+│   ├── LiveViewCameraDummy.*
+│   ├── LiveViewCameraRpicam.*  # rpicam-vid MJPEG-Stream (Pi)
+│   ├── LiveViewCameraQt.*   # Webcam über Qt Multimedia (Host)
+│   ├── CameraSnapshot.*     # Foto = aktueller Livebild-Frame
+│   ├── LedController.*      # LED-Helligkeit (Dummy)
+│   ├── LedPwm.*             # LED über PWM am Pi (Platzhalter)
+│   ├── Trigger.*            # Auslöser-Interface
+│   ├── TriggerKeyboard.*    # Leertaste / Enter
+│   ├── TriggerTimer.*       # automatisch, für Tests
+│   ├── TriggerGpio.*        # Button am Pi (Platzhalter)
+│   └── HardwareFactory.*    # wählt Backends per Konfiguration
 │
-├── input/                # Eingaben
-│   └── TouchInput.*
+├── input/                   # Eingaben
+│   └── TouchInput*.*        # Touch / Mausklick mit Debounce
 │
-├── ui/                   # UI-Komponenten
+├── ui/                      # UI-Komponenten
+│   ├── Theme.*              # Designs (Farben, Schriften, Stylesheets)
+│   ├── QrCard.*             # QR-Code, Link, Passwort
+│   ├── SettingsPanel.*      # Einstellungs-Overlay
 │   ├── QrCodeWidget.*
 │   └── qrcodegen.*
 │
-├── MainWindow.*
-└── main.cpp
+├── MainWindow.*             # Zustandsmaschine + Overlays
+└── main.cpp                 # Kommandozeile, Start
 ```
+
+---
+
+## ▶️ Starten
+
+```bash
+./build/fotobox                 # Vollbild
+./build/fotobox --windowed      # im Fenster (Entwicklung)
+./build/fotobox --help          # alle Optionen
+```
+
+Nützliche Optionen:
+
+| Option | Bedeutung |
+|---|---|
+| `-c, --config <datei>` | Pfad zur `config.json` |
+| `-w, --windowed` | Fenster statt Vollbild |
+| `--camera dummy\|gphoto` | Foto-Backend erzwingen |
+| `--liveview dummy\|rpicam` | Livebild-Backend erzwingen |
+| `--trigger keyboard\|gpio\|timer` | Auslöser erzwingen |
+| `--theme <id>` | Design erzwingen (retro, neon, elegant, wedding-blush, wedding-green, pool) |
+| `--screenshot <datei> --show settings` | Bild rendern und beenden (für Tests) |
+
+Tasten: **Leertaste / Enter** lösen ein Foto aus, **Esc / Q** beenden.
+Das Zahnrad oben links öffnet die Einstellungen: Design, LED-Helligkeit, Countdown, Anzeigedauer, QR-Code.
+
+### Designs
+
+Sechs Designs sind eingebaut und im Einstellungsmenü umschaltbar: **Retro Photobooth** (Standard),
+**Neon Party**, **Elegant**, **Hochzeit Rosé**, **Hochzeit Botanik** und **Pool Party**.
+Sie liegen als Token-Sets in `src/ui/Theme.cpp`.
+Die vorgesehenen Schriften (Archivo Black, Special Elite, Bebas Neue, Rubik, Cormorant Garamond, Lato,
+Great Vibes, Montserrat, Playfair Display, Fredoka, Nunito)
+werden aus einem Ordner `fonts/` neben dem Programm oder im Arbeitsverzeichnis geladen, wenn vorhanden.
+Fehlen sie, greifen Systemschriften.
+
+Ohne Angabe wird die Konfiguration in dieser Reihenfolge gesucht:
+`$FOTOBOX_CONFIG`, `./config.json`, `~/.config/fotobox/config.json`.
+Fehlt sie, laufen Standardwerte mit dem Bildordner `~/Pictures/Fotobox/<Jahr>/Test_Event`.
 
 ---
 
 ## 🛠️ Build (Host)
 
-Getestet unter **Ubuntu 24.xx**.
+Getestet unter **Ubuntu 24.xx** und **macOS** (Qt 6.11 aus dem Qt-Installer).
+Details in [BUILD.md](BUILD.md).
 
 ### Abhängigkeiten
 
@@ -144,6 +199,8 @@ Build erfolgt identisch, optional mit:
 -DFOTOBOX_PI=ON
 ```
 
+Damit werden am Pi standardmäßig `gphoto`, `rpicam` und `gpio` als Backends gewählt.
+
 ---
 
 ## ⚙️ Konfiguration
@@ -153,20 +210,23 @@ die bewusst **nicht** im Repository liegt.
 
 ### Beispiel: `Config.example.json`
 
-```json
-{
-  "SystemData": {
-    "basePath": "/home/fotobox/Nextcloud/",
-    "yearPath": "2026/",
-    "partyPath": "Mein_Event/",
-    "partyname": "Mein_Event",
-    "link": "https://example.com",
-    "password": "secret"
-  }
-}
-```
+Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 
-> Die echte `Config.js` / `config.json` wird per `.gitignore` ausgeschlossen.
+| Abschnitt | Feld | Bedeutung |
+|---|---|---|
+| SystemData | basePath, yearPath, partyPath | Bildordner = basePath/yearPath/partyPath (`~` erlaubt) |
+| SystemData | link | URL für den QR-Code |
+| Behaviour | countdownSeconds | Countdown-Länge |
+| Behaviour | slideshowIntervalMs, photoDisplayMs, liveViewTimeoutMs | Zeiten in ms |
+| Behaviour | showQr, qrSize | QR-Code ein/aus und Kantenlänge |
+| Behaviour | theme | Design-ID, siehe Abschnitt Designs |
+| Hardware | led, ledBrightness | LED-Backend und Helligkeit in Prozent |
+| Hardware | camera, liveView, trigger | `auto` oder ein konkretes Backend (`camera`: dummy, snapshot, gphoto; `liveView`: dummy, qt, rpicam) |
+| Hardware | gphoto2Binary, rpicamBinary | Programmnamen/Pfade |
+| Hardware | liveViewWidth/Height/Fps | Auflösung des Livebilds |
+| Hardware | gpioChip, gpioLine | Button am Pi |
+
+> Die echte `config.json` wird per `.gitignore` ausgeschlossen.
 
 ---
 

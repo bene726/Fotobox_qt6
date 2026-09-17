@@ -1,10 +1,35 @@
 {
   "SystemData": {
     "basePath": "/home/fotobox/Nextcloud/",
-    "yearPath": "2026/",
-    "partyPath": "Mein_Event/",
+    "yearPath": "2026",
+    "partyPath": "Mein_Event",
     "partyname": "Mein_Event",
     "link": "https://example.com",
     "password": "secret"
+  },
+  "Behaviour": {
+    "countdownSeconds": 3,
+    "slideshowIntervalMs": 4000,
+    "photoDisplayMs": 3000,
+    "liveViewTimeoutMs": 180000,
+    "showQr": true,
+    "qrSize": 130,
+    "theme": "retro"
+  },
+  "Hardware": {
+    "camera": "auto",
+    "liveView": "auto",
+    "trigger": "auto",
+    "gphoto2Binary": "gphoto2",
+    "rpicamBinary": "rpicam-vid",
+    "liveViewWidth": 1280,
+    "liveViewHeight": 720,
+    "liveViewFps": 30,
+    "gpioChip": "gpiochip0",
+    "gpioLine": 17,
+    "led": "auto",
+    "ledBrightness": 50,
+    "ledPwmChip": 0,
+    "ledPwmChannel": 0
   }
 }

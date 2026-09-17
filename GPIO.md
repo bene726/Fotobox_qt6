@@ -14,9 +14,16 @@ Die Fotobox nutzt GPIOs für:
 - Entspricht dem Signal `triggered()`
 
 ### Implementierung
-- Klasse: `TriggerThread`
-- GPIO-Abfrage in eigenem Thread
+- Interface: `Trigger` (Signal `triggered()`)
+- `TriggerGpio`: Button am Pi über libgpiod, **noch Platzhalter**
+- `TriggerKeyboard`: Leertaste/Enter, für Host und als Fallback am Pi
+- `TriggerTimer`: automatisches Auslösen für Tests
+- Auswahl über `Hardware.trigger` in der Konfiguration
 - Kein UI-Code im GPIO-Modul
+
+### Pi 5
+- Kein sysfs-GPIO mehr, libgpiod verwenden
+- Chip und Line sind konfigurierbar (`gpioChip`, `gpioLine`)
 
 ---
 

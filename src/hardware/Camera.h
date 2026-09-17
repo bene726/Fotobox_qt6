@@ -1,10 +1,18 @@
 #pragma once
+#include <QObject>
 #include <QString>
 
-class Camera {
+// Fotokamera (DSLR). Die Aufnahme laeuft asynchron:
+// capture() kehrt sofort zurueck, das Ergebnis kommt per Signal.
+class Camera : public QObject
+{
+    Q_OBJECT
 public:
-    virtual ~Camera() = default;
-    virtual QString capture(const QString& targetDir) = 0;
-};
+    using QObject::QObject;
 
-Camera* createCamera();
+    virtual void capture(const QString& targetDir) = 0;
+
+signals:
+    void captured(const QString& path);
+    void captureFailed(const QString& error);
+};
