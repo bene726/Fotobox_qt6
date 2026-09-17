@@ -8,6 +8,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(FOTOBOX_PI "Build for Raspberry Pi (echte Hardware als Standard-Backends)" OFF)
+set(FOTOBOX_VERSION "0.0.0" CACHE STRING "Versionsstring fuer Programm und Paket")
+set(FOTOBOX_MAINTAINER "Bene <46480461+BenediktCyranka@users.noreply.github.com>"
+    CACHE STRING "Maintainer-Feld des Debian-Pakets")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(Qt6 OPTIONAL_COMPONENTS Multimedia)
@@ -65,6 +68,8 @@ if(APPLE)
         "LINKER:-sectcreate,__TEXT,__info_plist,${FOTOBOX_PLIST}")
 endif()
 
+target_compile_definitions(fotobox PRIVATE FOTOBOX_VERSION_STR="${FOTOBOX_VERSION}")
+
 if(FOTOBOX_PI)
     target_compile_definitions(fotobox PRIVATE FOTOBOX_PI)
 else()
@@ -74,3 +79,34 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(fotobox PRIVATE -Wall -Wextra)
 endif()
+
+# ---------------------------------------------------------------- Installation
+
+include(GNUInstallDirs)
+install(TARGETS fotobox RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES packaging/fotobox.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES Config.example.json README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
+# Optionale Schriften fuer die Designs (Ordner fonts/ im Quellbaum)
+install(DIRECTORY fonts/ DESTINATION ${CMAKE_INSTALL_DATADIR}/fotobox/fonts OPTIONAL)
+
+# ---------------------------------------------------------------- Debian-Paket (cpack -G DEB)
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_NAME "fotobox")
+set(CPACK_PACKAGE_VERSION "${FOTOBOX_VERSION}")
+set(CPACK_PACKAGE_CONTACT "${FOTOBOX_MAINTAINER}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code")
+set(CPACK_PACKAGE_DESCRIPTION
+    "Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+set(CPACK_STRIP_FILES ON)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${FOTOBOX_MAINTAINER}")
+set(CPACK_DEBIAN_PACKAGE_SECTION "graphics")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/bene726/Fotobox_qt6")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)          # Bibliotheks-Abhaengigkeiten automatisch
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "gphoto2")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "rpicam-apps, gpiod")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)         # fotobox_<version>_<arch>.deb
+set(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
+include(CPack)

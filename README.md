@@ -1,5 +1,7 @@
 # 📸 Fotobox (Qt6)
 
+[![Build & Publish](https://github.com/bene726/Fotobox_qt6/actions/workflows/build.yml/badge.svg)](https://github.com/bene726/Fotobox_qt6/actions/workflows/build.yml)
+
 Eine private Fotobox-Anwendung auf Basis von **Qt6** für **Raspberry Pi** und **Linux-Hosts**.
 
 Gedacht für Events wie:
@@ -177,6 +179,45 @@ sudo apt install \
 cmake -B build -G Ninja
 ninja -C build
 ./build/fotobox
+```
+
+---
+
+## 📦 Installation auf dem Raspberry Pi (apt)
+
+Fertige Pakete für **Raspberry Pi OS 64-bit** (Bookworm und Trixie, Pi 4 und Pi 5) liegen in einem
+Apt-Repository auf GitHub Pages: <https://bene726.github.io/Fotobox_qt6/>
+
+```bash
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://bene726.github.io/Fotobox_qt6/fotobox.gpg | sudo tee /etc/apt/keyrings/fotobox.gpg >/dev/null
+. /etc/os-release
+echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/fotobox.gpg] https://bene726.github.io/Fotobox_qt6 $VERSION_CODENAME main" \
+  | sudo tee /etc/apt/sources.list.d/fotobox.list
+sudo apt update && sudo apt install fotobox
+```
+
+Danach kommen Updates ganz normal über `sudo apt upgrade`.
+
+- **Komponente `main`**: Releases (Git-Tags `v*`).
+- **Komponente `nightly`**: jeder Stand von `main`. Dafür `main nightly` in die Zeile schreiben.
+- Ist das Repo (noch) nicht signiert, fehlt `fotobox.gpg`; dann statt `signed-by=...` die Option `trusted=yes` verwenden.
+
+Das Paket installiert `fotobox` nach `/usr/bin`, eine Desktop-Datei und `Config.example.json`
+unter `/usr/share/doc/fotobox/`. Die eigene Konfiguration gehört nach `~/.config/fotobox/config.json`.
+
+### Pipeline
+
+[`.github/workflows/build.yml`](.github/workflows/build.yml) baut bei jedem Push auf `main` und bei Tags
+die `.deb`-Pakete in Debian-Containern auf einem ARM64-Runner, legt ein GitHub-Release an
+(rollendes Pre-Release `nightly` bzw. das Release zum Tag) und pflegt das Apt-Repo im Branch `gh-pages`,
+das per GitHub Pages veröffentlicht wird. Das Repo wird mit [`scripts/apt_repo.py`](scripts/apt_repo.py) erzeugt,
+die letzten fünf Nightlies bleiben erhalten.
+
+Ein Release entsteht durch einen Tag:
+
+```bash
+git tag -a v0.1.0 -m "Erstes Release" && git push origin v0.1.0
 ```
 
 ---

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Fotobox
+Comment=Fotobox mit Livebild, DSLR-Auslösung und Slideshow
+Exec=fotobox
+Icon=camera-photo
+Terminal=false
+Categories=Graphics;Photography;

@@ -51,3 +51,7 @@ CMakeLists.txt.user
 # -----------------------------
 config.json
 Config.js
+
+# Python
+__pycache__/
+*.pyc

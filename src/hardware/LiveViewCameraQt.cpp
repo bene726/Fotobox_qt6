@@ -5,8 +5,12 @@
 #include <QMediaDevices>
 #include <QVideoFrame>
 
+// QPermissions gibt es erst ab Qt 6.5 (Raspberry Pi OS Bookworm hat 6.4).
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #if QT_CONFIG(permissions)
+#define FOTOBOX_HAS_PERMISSIONS 1
 #include <QPermissions>
+#endif
 #endif
 
 bool LiveViewCameraQt::available()
@@ -51,7 +55,7 @@ void LiveViewCameraQt::startCamera()
 
 void LiveViewCameraQt::start()
 {
-#if QT_CONFIG(permissions)
+#ifdef FOTOBOX_HAS_PERMISSIONS
     QCameraPermission perm;
     switch (qApp->checkPermission(perm)) {
     case Qt::PermissionStatus::Undetermined:

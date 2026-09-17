@@ -1,0 +1,196 @@
+# Baut fotobox als .deb fuer Raspberry Pi OS (arm64, Bookworm und Trixie),
+# veroeffentlicht Nightlies und Releases und pflegt das Apt-Repo auf GitHub Pages.
+#
+#   Push auf main  -> Nightly-Release (Tag "nightly") + Apt-Komponente "nightly"
+#   Tag v*         -> Release + Apt-Komponente "main"
+#   Pull Request   -> nur bauen
+#
+# Optional (fuer ein signiertes Repo): Secrets APT_GPG_PRIVATE_KEY (ASCII-armored)
+# und APT_GPG_PASSPHRASE. Ohne Schluessel wird das Repo unsigniert veroeffentlicht.
+
+name: Build & Publish
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DISTS: bookworm trixie
+
+jobs:
+  # ------------------------------------------------------------ Version aus Git
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      channel: ${{ steps.v.outputs.channel }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+            CHANNEL=main
+          else
+            LAST=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+            if [[ -n "$LAST" ]]; then
+              BASE="${LAST#v}"; N=$(git rev-list --count "${LAST}..HEAD")
+            else
+              BASE="0.0.0"; N=$(git rev-list --count HEAD)
+            fi
+            VERSION="${BASE}+git$(date -u +%Y%m%d%H%M).${N}.g$(git rev-parse --short HEAD)"
+            CHANNEL=nightly
+            TAG=nightly
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"         >> "$GITHUB_OUTPUT"
+          echo "Version $VERSION ($CHANNEL)"
+
+  # ------------------------------------------------------------ .deb pro Distribution
+  build-deb:
+    needs: version
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        dist: [bookworm, trixie]
+    container:
+      image: debian:${{ matrix.dist }}
+    steps:
+      - name: Build-Abhaengigkeiten
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build git file dpkg-dev \
+            qt6-base-dev qt6-multimedia-dev
+      - uses: actions/checkout@v4
+      - name: Konfigurieren und bauen
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DFOTOBOX_PI=ON \
+            -DFOTOBOX_VERSION="${{ needs.version.outputs.version }}"
+          cmake --build build
+      - name: Paket bauen
+        run: |
+          cd build && cpack -G DEB
+          ls -l *.deb
+          dpkg-deb -I *.deb
+      - name: Rauchtest
+        run: |
+          apt-get install -y --no-install-recommends ./build/fotobox_*.deb
+          QT_QPA_PLATFORM=offscreen fotobox --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.dist }}
+          path: build/fotobox_*.deb
+          if-no-files-found: error
+
+  # ------------------------------------------------------------ Release + Apt-Repo
+  publish:
+    needs: [version, build-deb]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: apt-repo
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.version.outputs.version }}
+      CHANNEL: ${{ needs.version.outputs.channel }}
+      TAG: ${{ needs.version.outputs.tag }}
+      HAS_GPG: ${{ secrets.APT_GPG_PRIVATE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: debs
+      - name: Pakete umbenennen (Distribution im Dateinamen)
+        run: |
+          mkdir -p out
+          for d in $DISTS; do
+            for f in debs/deb-$d/*.deb; do
+              cp "$f" "out/$(basename "${f%.deb}")_$d.deb"
+            done
+          done
+          ls -l out
+
+      # --- GitHub Release
+      - name: Nightly-Release aktualisieren
+        if: env.CHANNEL == 'nightly'
+        run: |
+          gh release delete nightly --cleanup-tag --yes || true
+          gh release create nightly out/*.deb \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "Nightly $VERSION" \
+            --notes "Automatischer Build von main ($GITHUB_SHA). Nicht fuer den Einsatz auf einer echten Feier gedacht."
+      - name: Release erstellen
+        if: env.CHANNEL == 'main'
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" out/*.deb --clobber
+          else
+            gh release create "$TAG" out/*.deb --title "Fotobox $VERSION" --generate-notes
+          fi
+
+      # --- Apt-Repo im Branch gh-pages pflegen
+      - name: gh-pages auschecken
+        run: |
+          git clone --depth 1 --branch gh-pages \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site 2>/dev/null \
+          || { mkdir site && git -C site init -b gh-pages; }
+      - name: GPG-Schluessel importieren
+        if: env.HAS_GPG == 'true'
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          KEY_ID=$(gpg --batch --list-secret-keys --with-colons | awk -F: '/^sec/ {print $5; exit}')
+          echo "APT_GPG_KEY_ID=$KEY_ID" >> "$GITHUB_ENV"
+          echo "Signiere mit Schluessel $KEY_ID"
+      - name: Repo aktualisieren
+        env:
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        run: |
+          for d in $DISTS; do
+            python3 scripts/apt_repo.py add --repo site --dist "$d" --component "$CHANNEL" debs/deb-$d/*.deb
+          done
+          python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 \
+            --base-url "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+      - name: gh-pages pushen
+        run: |
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "apt: $CHANNEL $VERSION" || echo "keine Aenderung"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+
+      # --- Auf GitHub Pages veroeffentlichen (aktiviert Pages beim ersten Lauf)
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Site-Artefakt vorbereiten
+        run: rsync -a --exclude .git site/ public/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4

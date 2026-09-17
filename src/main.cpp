@@ -14,7 +14,9 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("fotobox");
-    QCoreApplication::setApplicationVersion("0.1");
+#ifdef FOTOBOX_VERSION_STR
+    QCoreApplication::setApplicationVersion(FOTOBOX_VERSION_STR);
+#endif
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Fotobox");
@@ -44,6 +46,7 @@ int main(int argc, char* argv[])
 
     // Optionale Schriften: fonts/ neben dem Programm, im Arbeitsverzeichnis oder in der Config-Nähe.
     Theme::loadFonts({QCoreApplication::applicationDirPath() + "/fonts",
+                      QCoreApplication::applicationDirPath() + "/../share/fotobox/fonts",
                       QDir::currentPath() + "/fonts",
                       QFileInfo(cfg.sourcePath).absolutePath() + "/fonts"});
 

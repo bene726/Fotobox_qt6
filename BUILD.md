@@ -81,3 +81,29 @@ ninja -C build
 ```bash
 rm -rf build
 ```
+
+---
+
+## Debian-Paket bauen
+
+Auf einem Debian/Raspberry Pi OS System (oder im Container):
+```bash
+sudo apt install build-essential cmake ninja-build dpkg-dev file qt6-base-dev qt6-multimedia-dev
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DFOTOBOX_PI=ON -DFOTOBOX_VERSION=0.1.0
+cmake --build build
+cd build && cpack -G DEB
+```
+Ergebnis: `build/fotobox_<version>_arm64.deb`. Die Bibliotheks-Abhängigkeiten werden per
+`dpkg-shlibdeps` automatisch eingetragen, dazu `gphoto2` als Depends und `rpicam-apps`, `gpiod` als Recommends.
+
+## CI / Apt-Repo
+
+Siehe Abschnitt "Installation auf dem Raspberry Pi" in der README. Für ein signiertes Repo im
+GitHub-Repository die Secrets `APT_GPG_PRIVATE_KEY` (ASCII-armored privater Schlüssel) und optional
+`APT_GPG_PASSPHRASE` hinterlegen. Ohne Secrets wird das Repo unsigniert veröffentlicht.
+
+Schlüssel erzeugen und exportieren:
+```bash
+gpg --quick-generate-key "Fotobox Apt <fotobox@example.com>" rsa4096 sign never
+gpg --armor --export-secret-keys "Fotobox Apt" > fotobox-apt-private.asc   # -> Secret APT_GPG_PRIVATE_KEY
+```
