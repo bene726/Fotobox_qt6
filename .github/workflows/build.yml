@@ -71,7 +71,7 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build git file dpkg-dev \
+            build-essential cmake ninja-build git ca-certificates file dpkg-dev \
             qt6-base-dev qt6-multimedia-dev
       - uses: actions/checkout@v4
       - name: Konfigurieren und bauen
