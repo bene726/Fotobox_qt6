@@ -1,0 +1,29 @@
+Origin: Fotobox
+Label: Fotobox
+Suite: bookworm
+Codename: bookworm
+Architectures: arm64
+Components: main nightly
+Description: Fotobox-Pakete fuer Raspberry Pi OS bookworm
+Date: Fri, 18 Sep 2026 21:17:05 GMT
+MD5Sum:
+ d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
+ 35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
+ 34976257738b47902a9682763eabeabe               85 main/binary-arm64/Release
+ af7c79e577de426f8d82faf562f9b584              873 nightly/binary-arm64/Packages
+ 2a4f0499629583d15890bbf083d787a8              583 nightly/binary-arm64/Packages.gz
+ d5c3cf97e9140c1faf214d26e2303717               88 nightly/binary-arm64/Release
+SHA1:
+ da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
+ f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
+ 1bb6dd4489fe4e55a308cc521ff092070be29001               85 main/binary-arm64/Release
+ 5a156a2a1cebc9b6eea4aeb6a55096fbe72a48b5              873 nightly/binary-arm64/Packages
+ 5b891479ffff19611f6f54911da5323c147e78cf              583 nightly/binary-arm64/Packages.gz
+ 1b3982b05cf27274dad00280df4b491ea53899d1               88 nightly/binary-arm64/Release
+SHA256:
+ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
+ 6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
+ 5d1186ff15833d5b67c9297efa05fdc8c2f768cde33796e1b394b20b405c7560               85 main/binary-arm64/Release
+ f6de18b26e634f6c2a02c5fe3bf925f74ffaecb25af975b3235f0ffdb21a44fb              873 nightly/binary-arm64/Packages
+ ccc6e5e6f1d2545cd9c302760cb20e8022cadcc67d05f8e8d903118b96ad3513              583 nightly/binary-arm64/Packages.gz
+ 20c4e6dc42801852909111dd24663a3097b6228ce55324d73d3785fb789b9359               88 nightly/binary-arm64/Release

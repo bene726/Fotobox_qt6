@@ -1,0 +1,17 @@
+Architecture: arm64
+Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6 (>= 6.4.0), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.2.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 5.2)
+Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
+ Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
+Homepage: https://github.com/bene726/Fotobox_qt6
+Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
+Package: fotobox
+Priority: optional
+Recommends: rpicam-apps, gpiod
+Section: graphics
+Version: 0.0.0+git202609182115.6.gcc8a1bd
+Installed-Size: 363
+Filename: pool/bookworm/nightly/fotobox_0.0.0+git202609182115.6.gcc8a1bd_arm64.deb
+Size: 92844
+MD5sum: 8a6bc9212b02a31fc041f99d290fc27c
+SHA1: d3bf84058fa0b746514e3b3d8153b3de5771050d
+SHA256: e7262820d8b3d5da57d38d043a1b3e784c85c923858170bdd3dd7527731a6a8c

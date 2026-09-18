@@ -1,0 +1,5 @@
+Archive: bookworm
+Component: nightly
+Origin: Fotobox
+Label: Fotobox
+Architecture: arm64
