@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Origin: Fotobox
 Label: Fotobox
 Suite: bookworm
@@ -27,3 +30,19 @@ SHA256:
  6c4f6aa29cf607a0168722672636998c00817089c56722cb4db9a930bdfbac4c             3495 nightly/binary-arm64/Packages
  11b413098be2f84f61085191cdcfbfd70bf47039851304a78005df6fce6ce379              938 nightly/binary-arm64/Packages.gz
  20c4e6dc42801852909111dd24663a3097b6228ce55324d73d3785fb789b9359               88 nightly/binary-arm64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmqu4IgACgkQMe+/O2A9
+LUfomBAAmNhi83gIU1Bt2cNsSnu+EQxXXo/OBNUrBlc2JO/V6EQECfeVng9KEBrl
+dB1l3tGBAYS5trVPDL/DsJYGHmtP0wFdcJ0DgQYbkZ31F2BxuJwcu42oPxU7Make
+FDUTjU88cLmV6gt6RaHTu3ZlGjHTED3hgUwEcavvsN38mfKaGKC1HioSxrjPujED
+W8BOCzmEZZMK3q+H/L299zLS3DO2UlOd//GNYbrHmv1iJ3dzpsKXEU+wajOlDk5M
+nq/85uO3FyiUyOCT/a4JS23KbxmrYPp0WUtwM00fZknIqf82Fq8lBzTPkdMjzlR+
+6BGFkFoQS9DeTFXSAKal8kuh4hQ3T3WFUOmToPtC5fKdFcTSCf2RrDwsljmywnj4
+PwX+HQEEUY6R71lufvg9Sq58joRZf2AVElBuhjj8/mZVgmdG9eI8nUcra6dZFWLJ
+j7hbwvnWqKGgolkuIWGYcZIMCYZO2CUfKli9sPL7ip1mDOUU/FaMzRMl6Sggb8sx
+MwCLKejjeFUz0o+TYT6IX1RAQYCpjEscOl6Jh16bJY1byVZr/xRe+fgO1jRrRhM5
+DFn6kSQbLEZJLe+Y1L7OB/FbfFeRnfI4NngjcfrISaWsgo4wp3y6hG9EfRgqCkyj
+MlxNuulhBXmpsEPev7bhIqf9jmwt2qpKuQQSVho9N37YnOlLBTA=
+=HmY1
+-----END PGP SIGNATURE-----

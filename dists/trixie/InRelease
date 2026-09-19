@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Origin: Fotobox
 Label: Fotobox
 Suite: trixie
@@ -27,3 +30,19 @@ SHA256:
  9666514806ae91b88b65b26ed0ccf7cf310b3363726497245e98e493d0d08fa7             3499 nightly/binary-arm64/Packages
  01c7c39f9cd61be572868d8bc43b58c375f7b4ce19da2c7ba1f9435f6b2c843a              940 nightly/binary-arm64/Packages.gz
  ea44d7db7ca57c39a71a6eeb8bae8ef3b75be57fc0d06ad1a49bf6e256b51b38               86 nightly/binary-arm64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmqu4IgACgkQMe+/O2A9
+LUfC7g//TuHzCi893eCpzsVQK7k6JwfUVB4DnvAKTV4cGMVDkRma6cosB0uXofnB
+RKfZSBjmV4cLSilbkblA6lSfVCyZstqFoPzFe9HI76orCApwdEk3CT4t2QWfKw/c
+9aemLME1Y0ajowxd/qwtE2bf2QmqbgUmERltFci+rVr/nU8QV44vgIknbT+XmYei
+CnX+kkIm8TOh6foER7yldU1ap8H3lzsL/wHCj7P//7e0pFWmzfTU7ZxHRU1t1Q4A
+2ygrUks0bMQDLg1YWCndCQ/Iy+s3/7oga0O2eq5MbFGu7NEunikskI5xMtyo0A9r
+6tW+WsWTmpozlPxXRnFm6+UIxpVTezauV5uvsZJpdm+nKN+MX4aaDjN3dKGAbLBk
+cwHx3voUvkx8GZcJRjDAbIXLm7oVSEKFkkhEJ0C4zDnTsRqk/PZGS/UQM2ZO031N
+apWhgqC1ssxefKj/JRB1VHQ7ZVgNQ8QjTW9+duSLJEyx2UF6UGGUWbbRQBDp+0fg
+V5AzIbm5T6cSus0FBLaT6wnHyIaQeuyvYc9YXEeUGqyXI9M4m1ulr1YxugOdo6pV
+cW27fbW9n3+nK0ygieKhRE+S/vOUjAVxjpLlOyyfpFAoixPWDMVksoKIdIB0grT6
+WhsSTF+3Hq6wda+jFtrQodwu/d2fRBIZeoHGzCsjiQOtht4vXvg=
+=tooE
+-----END PGP SIGNATURE-----
