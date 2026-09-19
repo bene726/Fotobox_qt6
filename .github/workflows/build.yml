@@ -116,7 +116,6 @@ jobs:
       VERSION: ${{ needs.version.outputs.version }}
       CHANNEL: ${{ needs.version.outputs.channel }}
       TAG: ${{ needs.version.outputs.tag }}
-      HAS_GPG: ${{ secrets.APT_GPG_PRIVATE_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -157,12 +156,20 @@ jobs:
             "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site 2>/dev/null \
           || { mkdir site && git -C site init -b gh-pages; }
       - name: GPG-Schluessel importieren
-        if: env.HAS_GPG == 'true'
         env:
           APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
         run: |
-          echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          set -euo pipefail
+          if [ -z "${APT_GPG_PRIVATE_KEY:-}" ]; then
+            echo "::warning::Secret APT_GPG_PRIVATE_KEY ist leer oder fehlt - das Apt-Repo wird UNSIGNIERT veroeffentlicht."
+            exit 0
+          fi
+          printf '%s\n' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
           KEY_ID=$(gpg --batch --list-secret-keys --with-colons | awk -F: '/^sec/ {print $5; exit}')
+          if [ -z "$KEY_ID" ]; then
+            echo "::error::Schluessel importiert, aber kein geheimer Schluessel gefunden."
+            exit 1
+          fi
           echo "APT_GPG_KEY_ID=$KEY_ID" >> "$GITHUB_ENV"
           echo "Signiere mit Schluessel $KEY_ID"
       - name: Repo aktualisieren
@@ -174,6 +181,21 @@ jobs:
           done
           python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 \
             --base-url "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+      - name: Signatur pruefen
+        run: |
+          set -euo pipefail
+          if [ -z "${APT_GPG_KEY_ID:-}" ]; then
+            echo "Kein Schluessel aktiv - Repo ist unsigniert (trusted=yes noetig)."
+            exit 0
+          fi
+          for d in $DISTS; do
+            for f in InRelease Release.gpg; do
+              test -s "site/dists/$d/$f" || { echo "::error::site/dists/$d/$f fehlt"; exit 1; }
+            done
+          done
+          test -s site/fotobox.gpg || { echo "::error::site/fotobox.gpg fehlt"; exit 1; }
+          gpg --batch --verify site/dists/trixie/InRelease
+          echo "Signaturen vorhanden und gueltig."
       - name: gh-pages pushen
         run: |
           cd site
