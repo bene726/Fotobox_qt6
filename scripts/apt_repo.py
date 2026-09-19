@@ -263,6 +263,22 @@ def write_index(repo: Path, dists: list, base_url: str, signed: bool) -> None:
         if signed else "# Repo ist nicht signiert, daher trusted=yes"
     )
     opts = "arch=arm64 signed-by=/etc/apt/keyrings/fotobox.gpg" if signed else "arch=arm64 trusted=yes"
+
+    # Solange es kein Release gibt, ist "main" leer: dann muss die Beispielzeile
+    # "nightly" enthalten, sonst findet apt nichts.
+    has_main = any(
+        list((repo / "pool" / d / "main").glob("*.deb"))
+        for d in dists
+        if (repo / "pool" / d / "main").is_dir()
+    )
+    components = "main" if has_main else "main nightly"
+    comp_note = (
+        "<p>Fuer Nightlies zusaetzlich die Komponente <code>nightly</code> in die Zeile aufnehmen.</p>"
+        if has_main else
+        "<p><strong>Hinweis:</strong> Es gibt noch kein Release, <code>main</code> ist daher leer. "
+        "Die Zeile oben enthaelt deshalb auch <code>nightly</code>. "
+        "Nach dem ersten Release genuegt <code>main</code>.</p>"
+    )
     pkgs = []
     for dist in dists:
         for comp in COMPONENTS:
@@ -278,9 +294,9 @@ pre{{background:#f4f4f4;padding:12px;overflow:auto}}</style></head><body>
 <pre>sudo mkdir -p /etc/apt/keyrings
 {key_hint}
 . /etc/os-release
-echo "deb [{opts}] {base_url} $VERSION_CODENAME main" | sudo tee /etc/apt/sources.list.d/fotobox.list
+echo "deb [{opts}] {base_url} $VERSION_CODENAME {components}" | sudo tee /etc/apt/sources.list.d/fotobox.list
 sudo apt update &amp;&amp; sudo apt install fotobox</pre>
-<p>Fuer Nightlies zusaetzlich die Komponente <code>nightly</code> in die Zeile aufnehmen.</p>
+{comp_note}
 <h2>Pakete</h2><ul>{''.join(pkgs) or '<li>noch keine</li>'}</ul>
 <p>Erzeugt am {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())}.</p>
 </body></html>
