@@ -33,3 +33,21 @@ Size: 97328
 MD5sum: dbe3d0028333c574f9ed58721482bb58
 SHA1: 921e8644c17ec0f287e78f19e6680b80c27f47f9
 SHA256: 74d2ad704679bfb70051fbfffbc90a1186e73dbae59495a04b4e47f0b63469ac
+
+Architecture: arm64
+Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 5.2)
+Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
+ Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
+Homepage: https://github.com/bene726/Fotobox_qt6
+Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
+Package: fotobox
+Priority: optional
+Recommends: rpicam-apps, gpiod
+Section: graphics
+Version: 0.0.0+git202609191911.7.gc9a7f51
+Installed-Size: 363
+Filename: pool/trixie/nightly/fotobox_0.0.0+git202609191911.7.gc9a7f51_arm64.deb
+Size: 97138
+MD5sum: c6dabce4466e96802d071b7db2bbfa09
+SHA1: bf1fa3b5515fcb48fe0ed833a4d4e44777966dfa
+SHA256: 63f6df0eafe9bf87cd044e7631e2a8d2b245e9156f5f9e2f6bfa8b11deed5154
