@@ -5,7 +5,7 @@ Codename: trixie
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS trixie
-Date: Fri, 18 Sep 2026 21:17:05 GMT
+Date: Sat, 19 Sep 2026 18:52:01 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
