@@ -8,24 +8,6 @@ Package: fotobox
 Priority: optional
 Recommends: rpicam-apps, gpiod
 Section: graphics
-Version: 0.0.0+git202609182115.6.gcc8a1bd
-Installed-Size: 363
-Filename: pool/trixie/nightly/fotobox_0.0.0+git202609182115.6.gcc8a1bd_arm64.deb
-Size: 96874
-MD5sum: 0abd664a6ed41279b663fdf0e4e11e09
-SHA1: 37898b97687853f96fa54494e3a0e806f1faa8e2
-SHA256: 620bf1631a4bc25e1973e19259e32146c2b4eb56a7cb95eeb89a31a55f897191
-
-Architecture: arm64
-Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 5.2)
-Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
- Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
-Homepage: https://github.com/bene726/Fotobox_qt6
-Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
-Package: fotobox
-Priority: optional
-Recommends: rpicam-apps, gpiod
-Section: graphics
 Version: 0.0.0+git202609191906.6.gcc8a1bd
 Installed-Size: 363
 Filename: pool/trixie/nightly/fotobox_0.0.0+git202609191906.6.gcc8a1bd_arm64.deb
@@ -87,3 +69,21 @@ Size: 96990
 MD5sum: 718f8d15c296c433aefb8c0a2194aad1
 SHA1: 612222095fc032a41a75b9e5a98819dc4a2962e8
 SHA256: d0f65e99468fc269780410f0bc9866433c08d9888ab69d47d4261cf38142eb63
+
+Architecture: arm64
+Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 5.2)
+Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
+ Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
+Homepage: https://github.com/bene726/Fotobox_qt6
+Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
+Package: fotobox
+Priority: optional
+Recommends: rpicam-apps, gpiod
+Section: graphics
+Version: 0.1.0+git202609221103.0.g42668b8
+Installed-Size: 364
+Filename: pool/trixie/nightly/fotobox_0.1.0+git202609221103.0.g42668b8_arm64.deb
+Size: 97306
+MD5sum: 48931732976f04990546b236b4d8abd3
+SHA1: cb7e4bb526ee8b30be03b393a7a9e46dcc56d4e2
+SHA256: e0614e2d7c3e10f786dbb4a4701606554e993e0c63a475d3126f24433a3f4b3b

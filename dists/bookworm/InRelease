@@ -8,41 +8,41 @@ Codename: bookworm
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS bookworm
-Date: Tue, 22 Sep 2026 10:38:26 GMT
+Date: Tue, 22 Sep 2026 11:04:54 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
  34976257738b47902a9682763eabeabe               85 main/binary-arm64/Release
- 43e53fc4a0fbfb40fab3ed7c0382e094             4369 nightly/binary-arm64/Packages
- 65ecfb329898cefda98eb8c9f1c274d6             1060 nightly/binary-arm64/Packages.gz
+ c251791d0e4f92e58c0ffe10bd9dbe0f             4369 nightly/binary-arm64/Packages
+ 3ad11b62947bf6af0e13e88853b5d25d             1072 nightly/binary-arm64/Packages.gz
  d5c3cf97e9140c1faf214d26e2303717               88 nightly/binary-arm64/Release
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
  f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
  1bb6dd4489fe4e55a308cc521ff092070be29001               85 main/binary-arm64/Release
- e0c7937cd0250e588dd4e23a77bd486e3a3953e2             4369 nightly/binary-arm64/Packages
- e9cd3061cd7788bd8113ae846a829055be3bc0ea             1060 nightly/binary-arm64/Packages.gz
+ 5ba1c05af2ac286f64476ea483c2e9456399af85             4369 nightly/binary-arm64/Packages
+ 30d2009e53b0907c52ab76863be2369b1d69c9ef             1072 nightly/binary-arm64/Packages.gz
  1b3982b05cf27274dad00280df4b491ea53899d1               88 nightly/binary-arm64/Release
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
  6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
  5d1186ff15833d5b67c9297efa05fdc8c2f768cde33796e1b394b20b405c7560               85 main/binary-arm64/Release
- f0b1cb6ff60abd91fb61adb4db418cde8aafcd59deba6fda7d5966c5c9a5c884             4369 nightly/binary-arm64/Packages
- 22ac511119e7b23a934b334b1bb9b9b451e8e7ab08579d2368baba89415cd863             1060 nightly/binary-arm64/Packages.gz
+ 0270d96de0be22cd123954ca3af695a21b15abba62c2a593a9626d6a80d89952             4369 nightly/binary-arm64/Packages
+ 106bd50eff4f7ab3d3848dd63a673992f27dd86075b534b5d0dee744a20e6dcd             1072 nightly/binary-arm64/Packages.gz
  20c4e6dc42801852909111dd24663a3097b6228ce55324d73d3785fb789b9359               88 nightly/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmqyWqIACgkQMe+/O2A9
-LUdPaw//ZfnGDxp2sl4qf+lgiC6TCUBmlEpvwdgNNxshRKyYJddl0OlSXx7qbUqX
-GxkmAHZcRCTw06qVfwxiEVuLS/cHLrjARo3uR8YPMlbES8rslqOQS7ArvepKx/7y
-xDlKnzwGs17QnSN9DR22OPk/OH6xyN61iT+6YAW5fm5F8jQowETDdbdK2IeAhGsw
-nAXP+gNtl+iFNjhNUs9MdayPbwBsLafnzISCX8Xt+iu6oF/kbA1ytzhwIYjNyaVw
-CpkcYDmR6Uo7Syrxp2uv33fROWuHL/qntPF95cV9Wu5X0GIE8JWYnjxVhFgGsybD
-mfotA0yi8bKUKPj2eVUbtFQg1T8hXwkENHNhuA8xVWIECGN3R4EyugwKH9kyZ4x6
-3PS9bQCGokZlqr0OxUurvVTJoDULeq27XQ1USQlUw1kUFpTYCuTBAdpZ3JJqWeXo
-lB5mXYRYb2VteZR6UPFP6KbcJ/ytZME36hnTjEPcIJyJ1CoU1EB7jqmpfvHr/oVb
-SFsPZ3TQ3Ww/ub8Gf4ZnIw6DXwm14ndQtOcs77vpuBf1Vn7cc0mMrrxIYI8cC8jl
-CX7JLrsrODpnKljLj7wP6FjToSHUBKyhpXbJwLjf5g7IsxwpiabznPHXTouBBlU2
-wkoCZ1BF0eDHGMc+H4vDTg0aaIRl42YY2m6wDg4kiO5CyM0zKoQ=
-=+JQY
+iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmqyYNYACgkQMe+/O2A9
+LUfwGhAAnSvGOVBM/QlOAyZTagKjy5wGa97k5fGcwqgav5km1KsOE4YBNDVG1roP
+2YInAx/spI+Hj0t98/Dub/MXxNihjYCTwUwBXb71m/jlHAN/8tAG5/Z/OujRhll/
+ysu7hi80GCckzqNgUvilwZYsloPtdVf6qE6nE720gazoGPlDDE7MEhzkqjFKt9UO
+KC+RSTf5/cDrtqiRG8OrwMKq6aluoAKA9Lnf8lPmTzLCql6fEobUp6CU4c2NmQCo
+8ezKpUnNAsZKFjkRYFC5IaA6GB6QkkbarRFfo6uT1gbxywPoRus1C64xakXLMUMJ
+z7WzevxhsUF+eQKkNqeWowiSyoVAXUs+8Z1kzcJ4OMEYoWGILw3sqsfbUXL80Rst
+0EuyCmwYnr2z8K6YKZ51LAakVEN8qwr9c4CKbxgpkG9PpHze4OHlJ8xDKrVNXopo
+YDHUA/okZ5X2PEFwTqUljBr1eMKDVRYnk8PzK+0OTLBKogrpRp+AiPIcv0PUBbye
+G3708mCDY6soUEPdCdbud2T/ap09ZqohfAxsIJk47+i3MjKStTy5715urS5mvURV
+oegw8zeSQfq9v8bvBGnXRZu23p/MkAoxuGrrcgtchBFXUHeNniXSrFm0n/5K6f+4
+U1RaqHKCgf+q8mRYwqkHAgkaUN5+hr3Hl1gTVUFK/MBnmcXNaXs=
+=r4zM
 -----END PGP SIGNATURE-----
