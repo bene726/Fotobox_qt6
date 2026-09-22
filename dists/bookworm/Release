@@ -5,25 +5,25 @@ Codename: bookworm
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS bookworm
-Date: Sat, 19 Sep 2026 19:20:40 GMT
+Date: Tue, 22 Sep 2026 10:38:26 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
  34976257738b47902a9682763eabeabe               85 main/binary-arm64/Release
- 62af1478a6c4866db354b3674ed00ca3             3495 nightly/binary-arm64/Packages
- 666634ee57c2591b186c5a46c229d0eb              938 nightly/binary-arm64/Packages.gz
+ 43e53fc4a0fbfb40fab3ed7c0382e094             4369 nightly/binary-arm64/Packages
+ 65ecfb329898cefda98eb8c9f1c274d6             1060 nightly/binary-arm64/Packages.gz
  d5c3cf97e9140c1faf214d26e2303717               88 nightly/binary-arm64/Release
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
  f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
  1bb6dd4489fe4e55a308cc521ff092070be29001               85 main/binary-arm64/Release
- 88e7c133ff71b2ed884032c4c1e2e7166ad0e213             3495 nightly/binary-arm64/Packages
- 00c274bd0757c7e1a41bbd9684ff67c7938cdc4f              938 nightly/binary-arm64/Packages.gz
+ e0c7937cd0250e588dd4e23a77bd486e3a3953e2             4369 nightly/binary-arm64/Packages
+ e9cd3061cd7788bd8113ae846a829055be3bc0ea             1060 nightly/binary-arm64/Packages.gz
  1b3982b05cf27274dad00280df4b491ea53899d1               88 nightly/binary-arm64/Release
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
  6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
  5d1186ff15833d5b67c9297efa05fdc8c2f768cde33796e1b394b20b405c7560               85 main/binary-arm64/Release
- 6c4f6aa29cf607a0168722672636998c00817089c56722cb4db9a930bdfbac4c             3495 nightly/binary-arm64/Packages
- 11b413098be2f84f61085191cdcfbfd70bf47039851304a78005df6fce6ce379              938 nightly/binary-arm64/Packages.gz
+ f0b1cb6ff60abd91fb61adb4db418cde8aafcd59deba6fda7d5966c5c9a5c884             4369 nightly/binary-arm64/Packages
+ 22ac511119e7b23a934b334b1bb9b9b451e8e7ab08579d2368baba89415cd863             1060 nightly/binary-arm64/Packages.gz
  20c4e6dc42801852909111dd24663a3097b6228ce55324d73d3785fb789b9359               88 nightly/binary-arm64/Release
