@@ -220,6 +220,21 @@ Ein Release entsteht durch einen Tag:
 git tag -a v0.1.0 -m "Erstes Release" && git push origin v0.1.0
 ```
 
+Der Tag muss dem Schema `vMAJOR.MINOR.PATCH` folgen, sonst bricht die Pipeline mit einer
+klaren Meldung ab. Ein Tag mit Suffix wie `v0.2.0-rc1` wird automatisch als Vorabversion
+markiert und von `gh` nicht als „latest“ geführt.
+
+Der Release-Text wird von [`scripts/release_notes.py`](scripts/release_notes.py) erzeugt und enthält:
+
+- alle Commits seit dem vorherigen Release-Tag, jeweils verlinkt
+- einen Vergleichslink auf die Änderungen zwischen beiden Tags
+- die fertigen Installationsbefehle für den Pi
+- eine Tabelle der Pakete samt SHA256-Prüfsummen (auch als `SHA256SUMS` am Release)
+
+Nach dem Erzeugen prüft die Pipeline, dass die neue Version wirklich in der passenden
+Apt-Komponente steht und die Signaturen gültig sind. Andernfalls schlägt der Lauf fehl,
+statt ein kaputtes Repository zu veröffentlichen.
+
 ---
 
 ## 🛠️ Build (Raspberry Pi)

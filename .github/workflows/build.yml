@@ -28,18 +28,26 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       channel: ${{ steps.v.outputs.channel }}
       tag: ${{ steps.v.outputs.tag }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: v
         shell: bash
         run: |
           set -euo pipefail
+          PRERELEASE=false
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
+            # Erlaubt: v1.2.3 und Vorabversionen wie v1.2.3-rc1
+            if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+              echo "::error::Tag '$TAG' passt nicht zum Schema vMAJOR.MINOR.PATCH (z. B. v0.1.0)."
+              exit 1
+            fi
             VERSION="${TAG#v}"
             CHANNEL=main
+            if [[ "$TAG" == *-* ]]; then PRERELEASE=true; fi
           else
             LAST=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
             if [[ -n "$LAST" ]]; then
@@ -51,10 +59,11 @@ jobs:
             CHANNEL=nightly
             TAG=nightly
           fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG"         >> "$GITHUB_OUTPUT"
-          echo "Version $VERSION ($CHANNEL)"
+          echo "version=$VERSION"       >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL"       >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"               >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Version $VERSION ($CHANNEL, Vorabversion: $PRERELEASE)"
 
   # ------------------------------------------------------------ .deb pro Distribution
   build-deb:
@@ -73,7 +82,7 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build git ca-certificates file dpkg-dev \
             qt6-base-dev qt6-multimedia-dev
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Konfigurieren und bauen
         run: |
           cmake -B build -G Ninja \
@@ -90,7 +99,7 @@ jobs:
         run: |
           apt-get install -y --no-install-recommends ./build/fotobox_*.deb
           QT_QPA_PLATFORM=offscreen fotobox --version
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: deb-${{ matrix.dist }}
           path: build/fotobox_*.deb
@@ -117,8 +126,10 @@ jobs:
       CHANNEL: ${{ needs.version.outputs.channel }}
       TAG: ${{ needs.version.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0        # volle Historie fuer den Changelog
+      - uses: actions/download-artifact@v8
         with:
           path: debs
       - name: Pakete umbenennen (Distribution im Dateinamen)
@@ -129,24 +140,37 @@ jobs:
               cp "$f" "out/$(basename "${f%.deb}")_$d.deb"
             done
           done
-          ls -l out
+          cd out && sha256sum *.deb | tee SHA256SUMS
+      - name: Release-Text erzeugen
+        run: |
+          python3 scripts/release_notes.py \
+            --version "$VERSION" --channel "$CHANNEL" --tag "${TAG:-}" \
+            --repo "$GITHUB_REPOSITORY" \
+            out/*.deb > notes.md
+          echo "--- notes.md ---"; cat notes.md
 
       # --- GitHub Release
       - name: Nightly-Release aktualisieren
         if: env.CHANNEL == 'nightly'
         run: |
           gh release delete nightly --cleanup-tag --yes || true
-          gh release create nightly out/*.deb \
+          gh release create nightly out/* \
             --prerelease --target "$GITHUB_SHA" \
             --title "Nightly $VERSION" \
-            --notes "Automatischer Build von main ($GITHUB_SHA). Nicht fuer den Einsatz auf einer echten Feier gedacht."
+            --notes-file notes.md
       - name: Release erstellen
         if: env.CHANNEL == 'main'
         run: |
+          FLAGS=()
+          if [ "${{ needs.version.outputs.prerelease }}" = "true" ]; then
+            FLAGS+=(--prerelease)
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" out/*.deb --clobber
+            gh release upload "$TAG" out/* --clobber
+            gh release edit "$TAG" --title "Fotobox $VERSION" --notes-file notes.md "${FLAGS[@]}"
           else
-            gh release create "$TAG" out/*.deb --title "Fotobox $VERSION" --generate-notes
+            gh release create "$TAG" out/* \
+              --title "Fotobox $VERSION" --notes-file notes.md "${FLAGS[@]}"
           fi
 
       # --- Apt-Repo im Branch gh-pages pflegen
@@ -181,9 +205,19 @@ jobs:
           done
           python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 \
             --base-url "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
-      - name: Signatur pruefen
+      - name: Repo pruefen
         run: |
           set -euo pipefail
+          # Die neue Version muss in der passenden Komponente auftauchen.
+          for d in $DISTS; do
+            P="site/dists/$d/$CHANNEL/binary-arm64/Packages"
+            if ! grep -qx "Version: $VERSION" "$P"; then
+              echo "::error::Version $VERSION fehlt in $d/$CHANNEL"
+              exit 1
+            fi
+          done
+          echo "Version $VERSION in allen Distributionen (Komponente $CHANNEL) vorhanden."
+
           if [ -z "${APT_GPG_KEY_ID:-}" ]; then
             echo "Kein Schluessel aktiv - Repo ist unsigniert (trusted=yes noetig)."
             exit 0
@@ -206,13 +240,13 @@ jobs:
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
 
       # --- Auf GitHub Pages veroeffentlichen (aktiviert Pages beim ersten Lauf)
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         with:
           enablement: true
       - name: Site-Artefakt vorbereiten
         run: rsync -a --exclude .git site/ public/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: public
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
