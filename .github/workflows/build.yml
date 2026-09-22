@@ -115,11 +115,6 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: write
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     env:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.version.outputs.version }}
@@ -239,10 +234,36 @@ jobs:
           git commit -m "apt: $CHANNEL $VERSION" || echo "keine Aenderung"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
 
-      # --- Auf GitHub Pages veroeffentlichen (aktiviert Pages beim ersten Lauf)
-      - uses: actions/configure-pages@v6
+  # ------------------------------------------------------------ Auf GitHub Pages veroeffentlichen
+  #
+  # Bewusst ein eigener Job: das Deployment braucht die Umgebung "github-pages",
+  # deren Schutzregeln Tags blockieren koennen. Als eigener Job kann das ein
+  # Release nicht mehr verhindern - der Inhalt liegt ohnehin im Branch gh-pages.
+  #
+  # Hinweis: Damit Tag-Laeufe die Seite aktualisieren duerfen, muss unter
+  # Settings -> Environments -> github-pages bei "Deployment branches and tags"
+  # eine Regel fuer "v*" eingetragen sein.
+  pages:
+    needs: publish
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Apt-Repo aus gh-pages holen
+        uses: actions/checkout@v7
         with:
-          enablement: true
+          ref: gh-pages
+          path: site
+      - uses: actions/configure-pages@v6
       - name: Site-Artefakt vorbereiten
         run: rsync -a --exclude .git site/ public/
       - uses: actions/upload-pages-artifact@v5

@@ -235,6 +235,18 @@ Nach dem Erzeugen prüft die Pipeline, dass die neue Version wirklich in der pas
 Apt-Komponente steht und die Signaturen gültig sind. Andernfalls schlägt der Lauf fehl,
 statt ein kaputtes Repository zu veröffentlichen.
 
+### Einmalige Einstellung für Tag-Läufe
+
+Das Veröffentlichen auf GitHub Pages läuft über die Umgebung `github-pages`. Deren
+Schutzregeln erlauben standardmäßig nur den Standard-Branch, ein Tag-Lauf wird dadurch
+abgewiesen. Damit Releases die Seite aktualisieren dürfen, einmalig unter
+**Settings → Environments → github-pages → Deployment branches and tags** eine Regel für
+`v*` hinzufügen.
+
+Release und Apt-Repo liegen bewusst in einem eigenen Job ohne diese Umgebung. Selbst wenn
+das Deployment abgewiesen wird, entstehen Release und Pakete trotzdem, nur die Seite bleibt
+dann auf dem vorherigen Stand.
+
 ---
 
 ## 🛠️ Build (Raspberry Pi)
