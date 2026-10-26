@@ -137,6 +137,81 @@ Das echte Foto ersetzt es, sobald es da ist.
 
 ---
 
+### 🔌 Vorgeschlagene Pinbelegung
+
+Zwei Verbraucher: der Auslöse-Taster und das PWM-Signal für die LED-Beleuchtung.
+Beide Vorschläge liegen **direkt neben einem GND-Pin in derselben Reihe**, es genügt
+also je ein zweipoliger Stecker.
+
+| Funktion | GPIO (BCM) | Header-Pin | GND daneben | Warum |
+|---|---|---|---|---|
+| Auslöse-Taster | **17** | 11 | Pin 9 | frei, keine Sonderfunktion, kein Bus |
+| LED-Beleuchtung | **12** | 32 | Pin 30 | Hardware-PWM Kanal 0, beim Booten low |
+
+> In der Konfiguration steht die **BCM-Nummer**, nicht die Pin-Nummer am Header.
+> GPIO 17 ist Pin 11, nicht Pin 17.
+
+Warum GPIO 12 für die LED: Die Pins 0 bis 8 sind beim Booten auf High gezogen. Hinge
+der Transistor dort, würde die Beleuchtung während des Hochfahrens leuchten. GPIO 12
+liegt im Bereich, der beim Booten auf Low liegt, die LED bleibt also dunkel, bis die
+Fotobox sie ansteuert.
+
+Passend dazu in die `config.json`:
+
+```json
+"Hardware": {
+  "gpioLine": 17,
+  "gpioPull": "up",
+  "ledPwmChannel": 0,
+  "ledPwmFrequency": 1000
+}
+```
+
+Und in `/boot/firmware/config.txt`, danach neu starten:
+
+```
+dtoverlay=pwm,pin=12,func=4
+```
+
+#### Alternativen
+
+| Statt | Geht auch | Zeile in der config.txt |
+|---|---|---|
+| GPIO 12 | GPIO 18 (Pin 12, GND Pin 14) | `dtoverlay=pwm,pin=18,func=2` |
+| GPIO 12 | GPIO 13 (Pin 33) oder 19 (Pin 35) | `dtoverlay=pwm,pin=13,func=4` |
+| GPIO 17 | jeder freie GPIO, z. B. 26 (Pin 37, GND Pin 39) | – |
+
+GPIO 18 teilt sich die Leitung mit der I2S-Audioausgabe. Solange die Fotobox keinen
+Ton ausgibt, stört das nicht.
+
+#### Wenn die LED an einem anderen Pin hängt
+
+Echte Hardware-PWM gibt es nur auf GPIO 12, 13, 18 und 19. Für jeden anderen Pin
+liefert der Kernel eine Software-PWM über dieselbe Schnittstelle, die Fotobox merkt
+keinen Unterschied:
+
+```
+dtoverlay=pwm-gpio,gpio=25
+```
+
+Die ist weniger exakt als die Hardware-Variante, für die Helligkeit eines LED-Bands
+aber in der Regel ausreichend. Umstecken ist also nicht zwingend.
+
+#### Diese Pins besser meiden
+
+| Pins | Grund |
+|---|---|
+| GPIO 0, 1 | für das EEPROM von Aufsteckplatinen reserviert |
+| GPIO 2, 3 | I2C mit fest verbauten Pull-ups; GPIO 3 weckt den Pi zusätzlich aus dem Halt |
+| GPIO 14, 15 | serielle Konsole |
+| GPIO 7 bis 11 | SPI0 |
+| GPIO 0 bis 8 | beim Booten auf High, für die LED ungeeignet |
+
+Ist die vorhandene Verdrahtung unbekannt, nennt `fotobox --gpio-watch` die Nummer
+auf Knopfdruck. Details in [GPIO.md](GPIO.md).
+
+---
+
 ### 🖼 UI-Konzept
 
 - Livebild = **Basis-Ebene**
