@@ -36,6 +36,16 @@ void listV4l2()
 }
 }
 
+QList<QPair<QString, QString>> CameraScan::devices()
+{
+    QList<QPair<QString, QString>> out;
+#ifdef FOTOBOX_HAS_QTMULTIMEDIA
+    for (const QCameraDevice& c : QMediaDevices::videoInputs())
+        out.append({QString::fromUtf8(c.id()), c.description()});
+#endif
+    return out;
+}
+
 int CameraScan::run()
 {
 #ifdef FOTOBOX_HAS_QTMULTIMEDIA

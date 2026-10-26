@@ -18,6 +18,7 @@ class TouchInput;
 class LedController;
 class SettingsPanel;
 class QToolButton;
+class QPushButton;
 
 // Zentrale Steuerung: kennt alle Zustaende und verbindet Hardware mit UI.
 //
@@ -25,7 +26,7 @@ class QToolButton;
 //   liveView         - Livebild, laeuft immer
 //   photoOverlay     - Slideshow bzw. gerade aufgenommenes Foto
 //   countdownOverlay - Countdown mit Kreis und Untertitel
-//   hintLabel        - "Knopf druecken" unten links
+//   shutterButton    - Ausloeser unten, neben der QR-Karte
 //   qrCard           - QR-Code, Link, Passwort unten rechts
 //   settingsButton   - Zahnrad oben links
 //   settingsPanel    - Einstellungen (Design, LED, Countdown, ...)
@@ -96,7 +97,7 @@ private:
     QWidget* countdownCircle = nullptr;
     QLabel* countdownLabel = nullptr;
     QLabel* countdownCaption = nullptr;
-    QLabel* hintLabel = nullptr;
+    QPushButton* shutterButton = nullptr;
     QWidget* qrShadow = nullptr;
     QrCard* qrCard = nullptr;
     QToolButton* settingsButton = nullptr;

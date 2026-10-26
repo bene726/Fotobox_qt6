@@ -7,6 +7,7 @@
 #include "hardware/LiveViewCamera.h"
 #include "hardware/Trigger.h"
 #include "input/TouchInputQt.h"
+#include "hardware/CameraScan.h"
 #include "ui/QrCard.h"
 #include "ui/SettingsPanel.h"
 
@@ -14,6 +15,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QResizeEvent>
+#include <QPushButton>
 #include <QToolButton>
 
 MainWindow::MainWindow(const Config& config, QWidget* parent)
@@ -60,9 +62,10 @@ void MainWindow::setupUi()
     countdownCaption = new QLabel(countdownOverlay);
     countdownCaption->setAlignment(Qt::AlignCenter);
 
-    hintLabel = new QLabel(central);
-    hintLabel->setAlignment(Qt::AlignCenter);
-    hintLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+    shutterButton = new QPushButton(central);
+    shutterButton->setCursor(Qt::PointingHandCursor);
+    shutterButton->setFocusPolicy(Qt::NoFocus);   // sonst reagiert er auf die Leertaste
+    connect(shutterButton, &QPushButton::clicked, this, &MainWindow::onTriggered);
 
     qrShadow = new QWidget(central);
     qrShadow->setAttribute(Qt::WA_StyledBackground, true);
@@ -83,6 +86,15 @@ void MainWindow::setupUi()
     settingsPanel = new SettingsPanel(cfg, central);
     settingsPanel->hide();
     connect(settingsPanel, &SettingsPanel::themeChanged, this, &MainWindow::applyTheme);
+    connect(settingsPanel, &SettingsPanel::cameraChanged, this, [this](const QString& dev) {
+        cfg.liveViewDevice = dev;
+        if (liveCam && liveCam->setDevice(dev)) {
+            liveFrameSeen = false;
+            liveWatchdog.start();   // meldet sich, falls die neue Kamera nichts liefert
+        } else {
+            showMessage(QString::fromUtf8("Kamerawechsel braucht das Backend \"qt\"."), 5000);
+        }
+    });
     connect(settingsPanel, &SettingsPanel::ledBrightnessChanged, this, [this](int v) {
         cfg.ledBrightness = v;
         led->setBrightness(v);
@@ -171,8 +183,8 @@ void MainWindow::applyTheme(const QString& id)
 
     central->setStyleSheet(theme.centralStyle());
     settingsButton->setStyleSheet(theme.gearStyle());
-    hintLabel->setStyleSheet(theme.hintStyle());
-    hintLabel->setText(theme.hintText);
+    shutterButton->setStyleSheet(theme.shutterStyle());
+    shutterButton->setText(theme.shutterText);
     countdownOverlay->setStyleSheet(theme.countdownOverlayStyle());
     countdownLabel->setStyleSheet(theme.countdownLabelStyle());
     countdownCaption->setStyleSheet(theme.countdownCaptionStyle());
@@ -220,10 +232,12 @@ void MainWindow::layoutLayers()
                         qs.width(), qs.height());
     qrShadow->setGeometry(qrCard->geometry().translated(shadowOffset, shadowOffset));
 
-    // Hinweis: im Bereich links neben der QR-Karte zentriert
-    hintLabel->adjustSize();
-    const int hintArea = cfg.showQr ? qrCard->geometry().left() - margin : r.width();
-    hintLabel->move((hintArea - hintLabel->width()) / 2, r.height() - hintLabel->height() - margin - 8);
+    // Ausloeser: im Bereich links neben der QR-Karte zentriert
+    shutterButton->adjustSize();
+    const QSize sb = shutterButton->sizeHint();
+    const int area = cfg.showQr ? qrCard->geometry().left() - margin : r.width();
+    shutterButton->setGeometry((area - sb.width()) / 2, r.height() - sb.height() - margin - 8,
+                               sb.width(), sb.height());
 
     settingsButton->setGeometry(margin, margin, 56, 56);
 
@@ -311,7 +325,7 @@ void MainWindow::enterSlideshow()
     setState(State::Slideshow);
     liveViewTimeoutTimer.stop();
     photoTimer.stop();
-    hintLabel->show();
+    shutterButton->show();
 
     slideshowImages = FileWatcher::imageFiles(imagePath);
     slideshowIndex = 0;
@@ -358,7 +372,7 @@ void MainWindow::enterLiveView()
     photoOverlay->hide();
     overlaySource = QPixmap();
     settingsButton->show();
-    hintLabel->setVisible(!settingsPanel->isVisible());
+    shutterButton->setVisible(!settingsPanel->isVisible());
     if (!settingsPanel->isVisible())
         liveViewTimeoutTimer.start();
 }
@@ -370,7 +384,7 @@ void MainWindow::startCountdown()
     liveViewTimeoutTimer.stop();
     photoTimer.stop();
     photoOverlay->hide();
-    hintLabel->hide();
+    shutterButton->hide();
     settingsButton->hide();
 
     countdownValue = cfg.countdownSeconds;
@@ -408,8 +422,9 @@ void MainWindow::openSettings()
         return;
     enterLiveView();
     liveViewTimeoutTimer.stop();
-    hintLabel->hide();
+    shutterButton->hide();
     settingsPanel->setConfig(cfg);
+    settingsPanel->setCameras(CameraScan::devices(), cfg.liveViewDevice);
     settingsShadow->setVisible(theme.hardShadow);
     settingsPanel->show();
     settingsPanel->raise();

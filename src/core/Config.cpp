@@ -223,7 +223,8 @@ bool Config::save()
     root["Behaviour"] = beh;
 
     QJsonObject hw = root.value("Hardware").toObject();
-    hw["ledBrightness"] = ledBrightness;
+    hw["ledBrightness"]  = ledBrightness;
+    hw["liveViewDevice"] = liveViewDevice;
     root["Hardware"] = hw;
 
     QFile out(sourcePath);

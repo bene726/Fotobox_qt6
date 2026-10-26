@@ -19,8 +19,10 @@ public:
 
     void start() override;
     void stop() override;
+    bool setDevice(const QString& device) override;
 
 private:
+    QCameraDevice resolve(const QString& device) const;
     void startCamera();
 
     QCameraDevice m_dev;   // beim Start ausgewaehlt

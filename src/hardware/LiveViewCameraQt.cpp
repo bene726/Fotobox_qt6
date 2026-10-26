@@ -23,21 +23,7 @@ LiveViewCameraQt::LiveViewCameraQt(const QString& device, QObject* parent)
 {
     // Die Kamera gleich hier waehlen, damit die Entscheidung auch dann im Log
     // steht, wenn das Starten spaeter an einer Berechtigung scheitert.
-    m_dev = QMediaDevices::defaultVideoInput();
-    if (!device.isEmpty()) {
-        bool found = false;
-        for (const QCameraDevice& c : QMediaDevices::videoInputs()) {
-            if (c.description().contains(device, Qt::CaseInsensitive)
-                || QString::fromUtf8(c.id()).contains(device, Qt::CaseInsensitive)) {
-                m_dev = c;
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            qWarning() << "Keine Kamera passt zu" << device
-                       << "- nutze die Standardkamera. Liste mit --list-cameras.";
-    }
+    m_dev = resolve(device);
     qInfo() << "Qt-Kamera:" << m_dev.description();
 
     m_session.setVideoSink(&m_sink);
@@ -68,6 +54,37 @@ void LiveViewCameraQt::startCamera()
                 });
     }
     m_camera->start();
+}
+
+QCameraDevice LiveViewCameraQt::resolve(const QString& device) const
+{
+    if (device.isEmpty())
+        return QMediaDevices::defaultVideoInput();
+    for (const QCameraDevice& c : QMediaDevices::videoInputs()) {
+        if (c.description().contains(device, Qt::CaseInsensitive)
+            || QString::fromUtf8(c.id()).contains(device, Qt::CaseInsensitive))
+            return c;
+    }
+    qWarning() << "Keine Kamera passt zu" << device
+               << "- nutze die Standardkamera. Liste mit --list-cameras.";
+    return QMediaDevices::defaultVideoInput();
+}
+
+bool LiveViewCameraQt::setDevice(const QString& device)
+{
+    const QCameraDevice dev = resolve(device);
+    if (dev == m_dev)
+        return true;
+
+    m_dev = dev;
+    qInfo() << "Wechsle auf Kamera:" << m_dev.description();
+    if (m_camera) {
+        m_camera->stop();
+        m_camera->deleteLater();
+        m_camera = nullptr;
+    }
+    startCamera();
+    return true;
 }
 
 void LiveViewCameraQt::start()

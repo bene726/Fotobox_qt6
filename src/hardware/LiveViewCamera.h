@@ -15,6 +15,9 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
 
+    // Andere Kamera waehlen. Liefert false, wenn das Backend das nicht kann.
+    virtual bool setDevice(const QString& device) { Q_UNUSED(device); return false; }
+
     QImage lastFrame() const { return m_lastFrame; }
 
 signals:

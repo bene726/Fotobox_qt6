@@ -39,7 +39,8 @@ struct Theme
                                     // Werte/Buttons/Countdown-Zahl nutzen die Textschrift
 
     // Texte
-    QString hintText;
+    QString hintText;          // Hinweis auf den physischen Taster
+    QString shutterText;       // Beschriftung des Ausloesers auf dem Bildschirm
     QString countdownCaption;
     QString qrTitle;
 
@@ -51,6 +52,7 @@ struct Theme
     QString centralStyle() const;
     QString gearStyle() const;
     QString hintStyle() const;
+    QString shutterStyle() const;
     QString countdownOverlayStyle() const;
     QString countdownCircleStyle(int diameter) const;
     QString countdownLabelStyle() const;

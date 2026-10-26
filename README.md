@@ -30,7 +30,7 @@ Die Fotobox kombiniert:
 - **Slideshow** im Idle-Zustand
 - **Touch auf dem Display**
   - beendet die Slideshow
-  - löst **kein** Foto aus
+  - eigener Auslöse-Knopf auf dem Bildschirm für ein Foto
 - **Physischer Button**
   - startet Countdown (3…2…1)
   - löst ein Foto über die DSLR aus
@@ -129,7 +129,11 @@ Das echte Foto ersetzt es, sobald es da ist.
 
 **TouchInput**
 - erkennt Touch auf dem Display
-- beendet nur die Slideshow
+- beendet die Slideshow; ein Tippen daneben löst **kein** Foto aus
+
+**Auslöser auf dem Bildschirm**
+- eigener Knopf unten, im Stil des gewählten Designs
+- bewusst nur dieser Knopf, damit nicht jede Berührung ein Foto macht
 
 **Trigger**
 - physischer Taster am GPIO, siehe [GPIO.md](GPIO.md)
@@ -311,7 +315,9 @@ Nützliche Optionen:
 | `--gpio-watch` | Taster-Pin ermitteln: drücken und ablesen (Pi) |
 
 Tasten: **Leertaste / Enter** lösen ein Foto aus, **Esc / Q** beenden.
-Das Zahnrad oben links öffnet die Einstellungen: Design, LED-Helligkeit, Countdown, Anzeigedauer, QR-Code.
+Das Zahnrad oben links öffnet die Einstellungen: Design, **Kamera**, LED-Helligkeit,
+Countdown, Anzeigedauer und QR-Code. Die Kamera-Auswahl listet die erkannten Webcams
+und schaltet sofort um, der Umweg über die Konfigurationsdatei entfällt also.
 
 ### Designs
 

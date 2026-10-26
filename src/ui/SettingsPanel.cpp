@@ -26,6 +26,9 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     for (const Theme& t : Theme::all())
         m_theme->addItem(t.name, t.id);
 
+    m_camera = new QComboBox(this);
+    m_camera->setItemDelegate(new QStyledItemDelegate(m_camera));
+
     m_led = new QSlider(Qt::Horizontal, this);
     m_led->setRange(0, 100);
     m_ledValue = new QLabel(this);
@@ -54,6 +57,9 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     layout->setSpacing(14);
     layout->addWidget(title);
     layout->addWidget(makeRow("Design", m_theme));
+    m_cameraRow = makeRow("Kamera", m_camera);
+    m_cameraRow->hide();
+    layout->addWidget(m_cameraRow);
     layout->addWidget(makeRow("LED-Helligkeit", m_led, m_ledValue));
     layout->addWidget(makeRow("Countdown", m_countdown, m_countdownValue));
     layout->addWidget(makeRow("Foto anzeigen", m_photo, m_photoValue));
@@ -63,6 +69,10 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
 
     connect(m_theme, &QComboBox::currentIndexChanged, this, [this](int i) {
         emit themeChanged(m_theme->itemData(i).toString());
+    });
+    connect(m_camera, &QComboBox::currentIndexChanged, this, [this](int i) {
+        if (i >= 0)
+            emit cameraChanged(m_camera->itemData(i).toString());
     });
     connect(m_led, &QSlider::valueChanged, this, [this](int v) {
         m_ledValue->setText(QString::number(v) + " %");
@@ -106,16 +116,33 @@ QWidget* SettingsPanel::makeRow(const QString& title, QWidget* control, QLabel* 
     return row;
 }
 
+void SettingsPanel::setCameras(const QList<QPair<QString, QString>>& cams, const QString& current)
+{
+    QSignalBlocker b(m_camera);
+    m_camera->clear();
+    for (const auto& c : cams)
+        m_camera->addItem(c.second, c.second);   // Name genuegt zum Wiederfinden
+
+    m_cameraRow->setVisible(!cams.isEmpty());
+    if (cams.isEmpty())
+        return;
+
+    int idx = current.isEmpty() ? 0 : m_camera->findText(current, Qt::MatchContains);
+    m_camera->setCurrentIndex(idx < 0 ? 0 : idx);
+}
+
 void SettingsPanel::applyTheme(const Theme& theme)
 {
     setStyleSheet(theme.settingsStyle());
 
-    // Die Dropdown-Liste ist ein eigenes Popup-Fenster und erbt das Stylesheet
+    // Die Dropdown-Listen sind eigene Popup-Fenster und erben das Stylesheet
     // nicht zuverlaessig (macOS). Deshalb Liste und Rahmen direkt stylen.
-    QAbstractItemView* view = m_theme->view();
-    view->setStyleSheet(theme.comboPopupStyle());
-    if (QWidget* frame = view->parentWidget())
-        frame->setStyleSheet(theme.comboPopupStyle());
+    for (QComboBox* box : {m_theme, m_camera}) {
+        QAbstractItemView* view = box->view();
+        view->setStyleSheet(theme.comboPopupStyle());
+        if (QWidget* frame = view->parentWidget())
+            frame->setStyleSheet(theme.comboPopupStyle());
+    }
 }
 
 void SettingsPanel::openThemeDropdown()

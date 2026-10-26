@@ -19,6 +19,8 @@
 - [ ] Bildschirmtastatur (Qt Virtual Keyboard) auf dem Pi
 - [ ] LED heller schalten während des Countdowns
 - [ ] Upload-Status-Overlay (Nextcloud)
+- [x] Auslöser auf dem Touchscreen
+- [x] Kamera im Einstellungsmenü wählbar
 - [ ] Galerie-Ansicht auf dem Touchscreen
 
 ---
