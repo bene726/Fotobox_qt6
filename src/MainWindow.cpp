@@ -122,6 +122,21 @@ void MainWindow::setupUi()
 
     messageTimer.setSingleShot(true);
     connect(&messageTimer, &QTimer::timeout, messageLabel, &QWidget::hide);
+
+    // Kommt nach dem Start gar kein Frame, liegt meist das falsche Backend an.
+    // Ohne Hinweis bliebe der Bildschirm einfach schwarz.
+    liveWatchdog.setSingleShot(true);
+    liveWatchdog.setInterval(6000);
+    connect(&liveWatchdog, &QTimer::timeout, this, [this] {
+        if (liveFrameSeen)
+            return;
+        qWarning().noquote()
+            << "Es kommt kein Livebild an.\n"
+               "         Backend pruefen: \"liveView\" in der Konfiguration.\n"
+               "           qt     = USB-Webcam  (Liste mit: fotobox --list-cameras)\n"
+               "           rpicam = Raspberry-Pi-Kamera am CSI-Anschluss";
+        showMessage(QString::fromUtf8("Kein Livebild. Einstellung \"liveView\" prüfen."), 15000);
+    });
 }
 
 void MainWindow::setupHardware()
@@ -129,6 +144,7 @@ void MainWindow::setupHardware()
     liveCam = createLiveViewCamera(cfg, this);
     connect(liveCam, &LiveViewCamera::frameReady, this, &MainWindow::onLiveFrame);
     liveCam->start();
+    liveWatchdog.start();
 
     led = createLed(cfg, this);
     settingsPanel->setLedBrightness(led->brightness());
@@ -259,6 +275,11 @@ void MainWindow::showMessage(const QString& text, int ms)
 
 void MainWindow::onLiveFrame(const QImage& frame)
 {
+    if (!liveFrameSeen) {
+        liveFrameSeen = true;
+        liveWatchdog.stop();
+        qInfo() << "Erstes Livebild erhalten:" << frame.width() << "x" << frame.height();
+    }
     liveView->setPixmap(QPixmap::fromImage(frame).scaled(
         liveView->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }

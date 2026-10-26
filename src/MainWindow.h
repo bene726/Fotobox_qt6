@@ -111,6 +111,8 @@ private:
     QTimer liveViewTimeoutTimer;
     QTimer photoTimer;
     QTimer messageTimer;
+    QTimer liveWatchdog;     // meldet, wenn gar kein Livebild ankommt
+    bool liveFrameSeen = false;
 
     int countdownValue = 0;
     QStringList slideshowImages;
