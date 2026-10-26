@@ -1,0 +1,30 @@
+# Fotobox als systemd-Benutzerdienst.
+#
+# Der Dienst wird nicht beim Hochfahren gestartet, sondern von der
+# Autostart-Datei der Desktop-Sitzung. Erst dort stehen die Variablen zur
+# Verfuegung, ohne die Qt keine Anzeige findet.
+#
+#   cp /usr/share/fotobox/fotobox-autostart.desktop ~/.config/autostart/
+#
+# Von Hand steuern:
+#   systemctl --user status fotobox
+#   systemctl --user restart fotobox
+#   journalctl --user -u fotobox -f
+
+[Unit]
+Description=Fotobox
+Documentation=https://github.com/bene726/Fotobox_qt6
+After=graphical-session.target
+PartOf=graphical-session.target
+# Nicht endlos neu starten, wenn grundsaetzlich etwas fehlt
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/fotobox
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

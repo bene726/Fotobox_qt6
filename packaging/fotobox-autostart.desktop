@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Fotobox
+Comment=Startet die Fotobox beim Anmelden als Benutzerdienst
+# Erst die Variablen der Sitzung an systemd uebergeben, sonst findet Qt keine
+# Anzeige. Danach den Dienst starten, der sich bei einem Absturz selbst neu startet.
+Exec=sh -c "systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP; systemctl --user start fotobox.service"
+Terminal=false
+X-GNOME-Autostart-enabled=true

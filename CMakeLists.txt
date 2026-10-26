@@ -92,6 +92,12 @@ install(FILES Config.example.json README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
 if(FOTOBOX_PI)
     install(FILES packaging/50-fotobox-power.rules
             DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/rules.d)
+    # Autostart: Dienst plus die Datei, die ihn aus der Sitzung heraus startet.
+    # Bewusst nicht ${CMAKE_INSTALL_LIBDIR}: das waere unter Debian das
+    # Multiarch-Verzeichnis, systemd sucht aber in /usr/lib/systemd/user.
+    install(FILES packaging/fotobox.service DESTINATION lib/systemd/user)
+    install(FILES packaging/fotobox-autostart.desktop
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/fotobox)
 endif()
 # Optionale Schriften fuer die Designs (Ordner fonts/ im Quellbaum)
 install(DIRECTORY fonts/ DESTINATION ${CMAKE_INSTALL_DATADIR}/fotobox/fonts OPTIONAL)

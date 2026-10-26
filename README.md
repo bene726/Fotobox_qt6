@@ -494,52 +494,34 @@ Link und Passwort kommen in die Datei im Nextcloud-Ordner, Details unter
 ### 6. Autostart einrichten
 
 Die Fotobox ist eine Anwendung mit Oberfläche und braucht eine laufende
-Desktop-Sitzung. Der einfachste und robusteste Weg ist der Autostart des Desktops:
+Desktop-Sitzung. Das Paket bringt beides mit, was dafür nötig ist:
 
 ```bash
 mkdir -p ~/.config/autostart
-cp /usr/share/applications/fotobox.desktop ~/.config/autostart/
+cp /usr/share/fotobox/fotobox-autostart.desktop ~/.config/autostart/
 ```
 
-Damit startet die Fotobox, sobald sich der Desktop anmeldet. Dazu gehört die
-automatische Anmeldung: `sudo raspi-config` → **System Options** → **Boot / Auto Login**
-→ **Desktop Autologin**.
+Dazu die automatische Anmeldung: `sudo raspi-config` → **System Options** →
+**Boot / Auto Login** → **Desktop Autologin**. Danach neu starten.
 
-<details>
-<summary>Alternative: systemd-Benutzerdienst</summary>
+Was dabei passiert: Die Autostart-Datei übergibt zuerst die Variablen der
+Sitzung an systemd, ohne die Qt keine Anzeige findet, und startet dann den
+Dienst `fotobox.service`. Der startet die Anwendung nach einem Absturz von
+selbst neu, höchstens fünfmal in einer Minute.
 
-Wer lieber einen Dienst mit Neustart bei Absturz möchte, legt
-`~/.config/systemd/user/fotobox.service` an:
-
-```ini
-[Unit]
-Description=Fotobox
-After=graphical-session.target
-PartOf=graphical-session.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/fotobox
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=graphical-session.target
-```
-
-Aktivieren:
+Steuern und nachsehen:
 
 ```bash
-systemctl --user daemon-reload
-systemctl --user enable fotobox.service
+systemctl --user status fotobox
+systemctl --user restart fotobox
+journalctl --user -u fotobox -f
 ```
 
-> Der Dienst erbt die Variablen der Desktop-Sitzung nur, wenn der Compositor sie
-> an systemd übergibt. Tut er das nicht, startet die Anwendung ohne Anzeige und
-> bricht mit `could not connect to display` ab. Dann ist der Autostart des
-> Desktops oben der verlässlichere Weg.
-
-</details>
+> Dieser Teil ist der einzige, den ich nicht auf echter Hardware testen konnte.
+> Startet die Fotobox nicht, zeigt `journalctl --user -u fotobox -n 50` den Grund.
+> Als einfacherer Notnagel tut es auch die normale Desktop-Datei ohne Dienst:
+> `cp /usr/share/applications/fotobox.desktop ~/.config/autostart/`. Dann fehlt
+> nur der automatische Neustart nach einem Absturz.
 
 ### 7. Bildschirm wachhalten
 
@@ -577,7 +559,8 @@ fotobox --gpio-watch      # Taster drücken, Pin-Nummer ablesen
 - [ ] `fotobox --test-camera` meldet ankommende Bilder
 - [ ] `dtoverlay=pwm-pio` eingetragen, `/sys/class/pwm/` ist nicht leer
 - [ ] `/etc/fotobox/config.json` angelegt, `fotobox --dump-config` zeigt die richtigen Werte
-- [ ] Autostart eingerichtet und ein Neustart getestet
+- [ ] Autostart eingerichtet, `systemctl --user status fotobox` meldet "active"
+- [ ] Ein Neustart des Pi getestet
 - [ ] Automatische Anmeldung aktiv
 - [ ] Bildschirmabschaltung deaktiviert
 - [ ] Taster löst aus, LED-Regler wirkt

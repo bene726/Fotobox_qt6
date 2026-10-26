@@ -2,7 +2,7 @@
 
 ## Als Nächstes
 - [ ] Taster und LED verdrahten, Pin mit `--gpio-watch` bestimmen, `dtoverlay=pwm-pio` eintragen
-- [ ] Autostart einrichten (in der README beschrieben, noch nicht getestet)
+- [ ] Autostart auf dem Pi testen (Dienst liegt im Paket, ungetestet)
 - [ ] Nextcloud-Anbindung klären: Sync-Client auf dem Pi oder Upload aus der Anwendung
 - [ ] Release `v0.1.0` fertigstellen (Umgebungsregel für `v*`, dann Lauf wiederholen)
 
