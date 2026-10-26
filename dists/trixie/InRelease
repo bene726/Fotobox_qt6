@@ -8,41 +8,41 @@ Codename: trixie
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS trixie
-Date: Mon, 26 Oct 2026 20:36:51 GMT
+Date: Mon, 26 Oct 2026 20:59:45 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
  20e818068ee1dcc5db27011aeeb012cc               83 main/binary-arm64/Release
- b1f585a16b4ca50401a2a63f508624be             4421 nightly/binary-arm64/Packages
- 7aca6cb85fc6fb3af36a443bd05a3635             1099 nightly/binary-arm64/Packages.gz
+ 7de4b963c0dbad2a6d581355d3db53ee             4423 nightly/binary-arm64/Packages
+ b07cc40983ee42df6c283b35857f6f03             1106 nightly/binary-arm64/Packages.gz
  05b91b400978226e2503a7ac4a3594ee               86 nightly/binary-arm64/Release
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
  f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
  efcaf24c13732b2ae221a25cffa41337a25925f1               83 main/binary-arm64/Release
- ed40e13693328bdc900c272751ddb32648876b5a             4421 nightly/binary-arm64/Packages
- 64acd23997dcafebcfda53bc558fe4374c4304ee             1099 nightly/binary-arm64/Packages.gz
+ 48a5a467ed1e10d520932b79cb5f11f06b95a963             4423 nightly/binary-arm64/Packages
+ c260e635bf607020811d550714d1bff283d113d8             1106 nightly/binary-arm64/Packages.gz
  3a7d4827319a627fadba76945c612977eb4e4175               86 nightly/binary-arm64/Release
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
  6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
  6017c13245e2b64b05256f01a2203dc28d9beca563203915638b0f1644c2ffd2               83 main/binary-arm64/Release
- 0b18ef8b05fdced1a22b43b879361c2a0a51b9fa42e0e8c4a5cf0c4237a87007             4421 nightly/binary-arm64/Packages
- 66dc2d1e940f12ff7dcd5686e59a5347006d15cc63eb9ac0886a18695f41688e             1099 nightly/binary-arm64/Packages.gz
+ a18ab3eae6399b278edf895b323a45e48c7ae579f62b274e74c9fe3b12f812e7             4423 nightly/binary-arm64/Packages
+ 3df4dc8b26ae79fdf9bd368ff1bfc27f2993ae82783c4d32a26db210c55163eb             1106 nightly/binary-arm64/Packages.gz
  ea44d7db7ca57c39a71a6eeb8bae8ef3b75be57fc0d06ad1a49bf6e256b51b38               86 nightly/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmrfueMACgkQMe+/O2A9
-LUdBXxAAhngxDpp+7Xd55aElJtsJ6RSfpRf8ct8vtur0TAij6kUBMnQAqul/otir
-wa5f2SgFSdkJxPRNO7g525G7JTWmJXcz6HYd6l4NamWVg4rPyVSMtPvxobvqMhR0
-aJBXXYX7YIgm3hBa0TRWQDTTIDzHKWtG4WTn+KzDgtDeZl+ji4YQ0lINj182PAGJ
-JQ8OpOuttDs4fGvvlkonYUeQTh85r6guRSU37AjFJ2mXLC0ZUONJENWhHZueGYfu
-Y7un+CBEBkvmINAgxUkvKVYch3rS45dtC0JQ+I/OIkDrGqlwHH9NwMwLMJZMz5Gj
-2EfzAA1Yy7G5R/ODAoNlp3hu7P7ZCkNzb6BubClhj0bbBTAAIFovzUAwowgoiJZh
-G0UrS75UGe8fxqMG0vbpv4Osj5/CMueecGaXyD5LLnapI/YfvjcrULNTrwlN5FRN
-iBqSOE1B7cye2hJM+QQNvaUlK6p4ZEW3vazWRlBEYbZzkk61fScJFPd+p4G6komH
-LULkXqe2BrAnSQERFI0mso72pRijKCVqqF5sOZhSlOwOvk4s11SmB4affgX2s3wW
-EjJBD5p5KP0G7H33z03TfTUeqD5KLvsJE8TT51MpB1KPXKXejF8qajU51GnRC7Og
-8nVGxehNng9q2/6/V0CbfIgbUtScmp7rD0xjXByI5LDO6wJsVYI=
-=WZO0
+iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmrfv0EACgkQMe+/O2A9
+LUeo/g/+LvDBxZRIEOR4cZQ1xj3lf5B0PMWzrlV7/vs2y0GcWruafpdWFpxCkDys
+28u8EQfsjjAoZeVAVXaduIsi/yZ8qTZdlg+WyDW4u5dAXY9WGUd53gVfd7WhzFiF
+Jc92AvsTFvzb89/qIwC9WP84RkkAyme4EbvgBQzcaIhpbgEeT7iKyjhcydIsxg3Q
+M1WtSEYjSr5ZPKldh2rBv6XHpnqS5DPVxUZubEwZab3YPpnSO8JesximuKNwqlsm
+0TUE8UC+PYqqMHp/bLZGd1Wg/GhAHQSyq63wXL40AxW8P1iNNA0T8+pP1HBTmPlQ
+dbvo2UsEavpzWGj5bZc3rKlZvhzzqwdTK25S8Aq4IIvgNs4zm//5P4bb3vgRbz7t
+FAluaq3pSB2ISfKmBlTSsMq+/eK/xwCeV65jqslQFiTuEfM4fMWUO/sWd2XH+Oo/
+kBuYiLZV2mqXg4AwOFWMQ7+Txcxi1Ciy4SVUXgTlUjzaHL7CEz2kXvocPAIhHIJY
+tzsM70oL6MNVGYoNWB9EcBMclUvG4kQQga391/pbqFMPPydGQQsvC2/WMqJON5YC
++ZQDd0AMiiZqDnFW33tNhDJdJOlD9kKRM8XEb159r7S4GpXfn6gsTT9ErVldECta
+cv/5do5yiLdWw/54BTi3rfdbALGP5DsCvJnQXgYTQIPzvWwZjcs=
+=cBDQ
 -----END PGP SIGNATURE-----
