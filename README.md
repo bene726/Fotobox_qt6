@@ -57,7 +57,17 @@ Zwei getrennte Kameras mit klaren Aufgaben.
 | `dummy` | Testbild | ohne Hardware |
 
 Welche Webcams erkannt werden, zeigt `fotobox --list-cameras`. Sind mehrere
-angeschlossen, wählt `"liveViewDevice"` die richtige über einen Teil des Namens.
+angeschlossen, wählt man die richtige im Einstellungsmenü oder über `"liveViewDevice"`.
+
+Bleibt das Bild schwarz, beantwortet `fotobox --test-camera` die entscheidende Frage,
+ob überhaupt Bilder ankommen:
+
+```
+Erstes Bild nach 199 ms, 1280x720
+77 Bilder in 5 s (15.4 pro Sekunde). Das Livebild funktioniert.
+```
+
+Beide Befehle laufen auch über SSH, ohne Bildschirm.
 
 **Camera** – macht **genau ein Foto** pro Auslösung:
 
@@ -311,6 +321,7 @@ Nützliche Optionen:
 | `--theme <id>` | Design erzwingen (retro, neon, elegant, wedding-blush, wedding-green, pool) |
 | `--screenshot <datei> --show settings` | Bild rendern und beenden (für Tests) |
 | `--list-cameras` | erkannte Webcams für das Livebild auflisten |
+| `--test-camera` | fünf Sekunden lang zählen, ob wirklich Bilder ankommen |
 | `--gpio-info` | GPIO-Leitungen auflisten (Pi) |
 | `--gpio-watch` | Taster-Pin ermitteln: drücken und ablesen (Pi) |
 

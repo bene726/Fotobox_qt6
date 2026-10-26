@@ -20,6 +20,7 @@ public:
     void start() override;
     void stop() override;
     bool setDevice(const QString& device) override;
+    bool canSetDevice() const override { return true; }
 
 private:
     QCameraDevice resolve(const QString& device) const;

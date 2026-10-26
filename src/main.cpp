@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QGuiApplication>
 
 #include "MainWindow.h"
 #include "core/Config.h"
@@ -34,6 +35,7 @@ struct Cli
     QCommandLineOption show{"show", "Startzustand fuer Screenshots: liveview|settings|countdown",
                             "zustand"};
     QCommandLineOption listCameras{"list-cameras", "Verfuegbare Kameras fuer das Livebild auflisten"};
+    QCommandLineOption testCamera{"test-camera", "Livebild testen: kommen Bilder an?"};
     QCommandLineOption gpioInfo{"gpio-info", "GPIO-Leitungen auflisten"};
     QCommandLineOption gpioWatch{"gpio-watch", "GPIO-Leitungen beobachten (Pin des Tasters finden)"};
 
@@ -41,12 +43,24 @@ struct Cli
     {
         parser.setApplicationDescription(
             "Fotobox\n\n"
-            "Die Optionen --list-cameras, --gpio-info, --gpio-watch, --help und --version\n"
+            "Die Optionen --list-cameras, --test-camera, --gpio-info, --gpio-watch, --help\n"
+            "und --version\n"
             "brauchen keinen Bildschirm und laufen auch ueber SSH.");
         parser.addOptions({config, windowed, camera, liveView, trigger, theme, screenshot, show,
-                           listCameras, gpioInfo, gpioWatch});
+                           listCameras, testCamera, gpioInfo, gpioWatch});
     }
 };
+
+// Die Kamera-Diagnose braucht eine Grafikumgebung, um Bilder umzuwandeln.
+// Ueber SSH gibt es keine Anzeige, dann wird offscreen gerendert.
+void ensureHeadlessPlatform()
+{
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")
+        && qEnvironmentVariableIsEmpty("DISPLAY")
+        && qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
+        qputenv("QT_QPA_PLATFORM", "offscreen");
+    }
+}
 
 void print(QTextStream& s, const QString& text)
 {
@@ -100,8 +114,18 @@ int main(int argc, char* argv[])
 
     // Diagnose ohne Oberflaeche
     if (cli.parser.isSet(cli.listCameras)) {
-        QCoreApplication app(argc, argv);
+        ensureHeadlessPlatform();
+        QGuiApplication app(argc, argv);
         return CameraScan::run();
+    }
+    if (cli.parser.isSet(cli.testCamera)) {
+        ensureHeadlessPlatform();
+        QGuiApplication app(argc, argv);
+        Config cfg = Config::loadLayered(cli.parser.isSet(cli.config) ? cli.parser.value(cli.config)
+                                                                      : QString());
+        if (cli.parser.isSet(cli.liveView))
+            cfg.liveViewBackend = cli.parser.value(cli.liveView);
+        return CameraScan::test(cfg);
     }
     if (cli.parser.isSet(cli.gpioInfo) || cli.parser.isSet(cli.gpioWatch)) {
         QCoreApplication app(argc, argv);

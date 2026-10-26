@@ -21,7 +21,8 @@ public:
 
     void setLedBrightness(int percent);
     // Liste als (Kennung, Anzeigename); ist sie leer, bleibt die Zeile verborgen.
-    void setCameras(const QList<QPair<QString, QString>>& cams, const QString& current);
+    void setCameras(const QList<QPair<QString, QString>>& cams, const QString& current,
+                    bool switchable);
     void setConfig(const Config& cfg);
     void applyTheme(const Theme& theme);
     void openThemeDropdown();   // fuer Screenshots

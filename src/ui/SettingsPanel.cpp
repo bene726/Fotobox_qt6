@@ -116,18 +116,28 @@ QWidget* SettingsPanel::makeRow(const QString& title, QWidget* control, QLabel* 
     return row;
 }
 
-void SettingsPanel::setCameras(const QList<QPair<QString, QString>>& cams, const QString& current)
+void SettingsPanel::setCameras(const QList<QPair<QString, QString>>& cams, const QString& current,
+                               bool switchable)
 {
     QSignalBlocker b(m_camera);
     m_camera->clear();
+
+    m_cameraRow->setVisible(!cams.isEmpty() || !switchable);
+    m_camera->setEnabled(switchable && !cams.isEmpty());
+
+    if (!switchable) {
+        // Sonst waere nicht erkennbar, warum ein Wechsel nichts bewirkt.
+        m_camera->addItem(QString::fromUtf8("nur mit Livebild-Backend \"qt\""));
+        return;
+    }
+    if (cams.isEmpty()) {
+        m_camera->addItem(QString::fromUtf8("keine Kamera gefunden"));
+        return;
+    }
+
     for (const auto& c : cams)
         m_camera->addItem(c.second, c.second);   // Name genuegt zum Wiederfinden
-
-    m_cameraRow->setVisible(!cams.isEmpty());
-    if (cams.isEmpty())
-        return;
-
-    int idx = current.isEmpty() ? 0 : m_camera->findText(current, Qt::MatchContains);
+    const int idx = current.isEmpty() ? 0 : m_camera->findText(current, Qt::MatchContains);
     m_camera->setCurrentIndex(idx < 0 ? 0 : idx);
 }
 

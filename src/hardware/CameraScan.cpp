@@ -1,5 +1,13 @@
 #include "CameraScan.h"
 
+#include "HardwareFactory.h"
+#include "LiveViewCamera.h"
+#include "core/Config.h"
+
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QTimer>
+
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
@@ -16,7 +24,9 @@ QTextStream& out()
     return s;
 }
 
-// Fallback ohne Qt Multimedia: die Namen stehen auch im Dateisystem.
+// Die Namen der Videogeraete stehen auch im Dateisystem. Unter Linux immer
+// mit ausgeben: Qt zeigt nicht jeden Knoten, und manche Webcams melden einen
+// zweiten Knoten, der gar keine Bilder liefert.
 void listV4l2()
 {
     const QStringList nodes = QDir("/sys/class/video4linux").entryList(QDir::Dirs | QDir::NoDotAndDotDot,
@@ -81,8 +91,11 @@ int CameraScan::run()
         out() << "\n";
     }
     out() << "Mit * markiert ist die Standardkamera.\n"
-             "Eine andere waehlen: \"liveViewDevice\" in der Konfiguration auf einen\n"
-             "Teil des Namens setzen, z.B. \"WEB CAM\".\n";
+             "Eine andere waehlen: im Einstellungsmenue oder ueber \"liveViewDevice\".\n\n";
+#ifdef __linux__
+    listV4l2();
+    out() << "\nOb wirklich Bilder ankommen, zeigt: fotobox --test-camera\n";
+#endif
     out().flush();
     return 0;
 #else
@@ -91,4 +104,53 @@ int CameraScan::run()
     out().flush();
     return 1;
 #endif
+}
+
+int CameraScan::test(const Config& cfg, int seconds)
+{
+    LiveViewCamera* cam = createLiveViewCamera(cfg, qApp);
+    if (!cam) {
+        out() << "Kein Livebild-Backend verfuegbar.\n";
+        out().flush();
+        return 1;
+    }
+
+    int frames = 0;
+    QSize size;
+    QElapsedTimer clock;
+    QObject::connect(cam, &LiveViewCamera::frameReady, qApp, [&](const QImage& img) {
+        if (frames == 0) {
+            size = img.size();
+            out() << "Erstes Bild nach " << clock.elapsed() << " ms, "
+                  << size.width() << "x" << size.height() << "\n";
+            out().flush();
+        }
+        frames++;
+    });
+
+    out() << "Teste " << seconds << " Sekunden lang ...\n";
+    out().flush();
+    clock.start();
+    cam->start();
+
+    int rc = 0;
+    QTimer::singleShot(seconds * 1000, qApp, [&] {
+        cam->stop();
+        const double fps = frames / double(seconds);
+        if (frames == 0) {
+            out() << "\nKEIN BILD erhalten.\n"
+                     "  - Backend pruefen: \"liveView\" (qt = USB-Webcam, rpicam = Pi-Kamera)\n"
+                     "  - Belegt ein anderes Programm die Kamera?\n"
+                     "  - Gehoert der Benutzer zur Gruppe 'video'?\n";
+            rc = 1;
+        } else {
+            out() << "\n" << frames << " Bilder in " << seconds << " s ("
+                  << QString::number(fps, 'f', 1) << " pro Sekunde). Das Livebild funktioniert.\n";
+        }
+        out().flush();
+        qApp->quit();
+    });
+
+    qApp->exec();
+    return rc;
 }

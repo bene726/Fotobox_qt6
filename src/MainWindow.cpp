@@ -146,7 +146,8 @@ void MainWindow::setupUi()
             << "Es kommt kein Livebild an.\n"
                "         Backend pruefen: \"liveView\" in der Konfiguration.\n"
                "           qt     = USB-Webcam  (Liste mit: fotobox --list-cameras)\n"
-               "           rpicam = Raspberry-Pi-Kamera am CSI-Anschluss";
+               "           rpicam = Raspberry-Pi-Kamera am CSI-Anschluss\n"
+               "         Genauer nachsehen: fotobox --test-camera";
         showMessage(QString::fromUtf8("Kein Livebild. Einstellung \"liveView\" prüfen."), 15000);
     });
 }
@@ -424,7 +425,8 @@ void MainWindow::openSettings()
     liveViewTimeoutTimer.stop();
     shutterButton->hide();
     settingsPanel->setConfig(cfg);
-    settingsPanel->setCameras(CameraScan::devices(), cfg.liveViewDevice);
+    settingsPanel->setCameras(CameraScan::devices(), cfg.liveViewDevice,
+                              liveCam && liveCam->canSetDevice());
     settingsShadow->setVisible(theme.hardShadow);
     settingsPanel->show();
     settingsPanel->raise();

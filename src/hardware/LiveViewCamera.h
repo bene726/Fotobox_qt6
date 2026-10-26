@@ -17,6 +17,7 @@ public:
 
     // Andere Kamera waehlen. Liefert false, wenn das Backend das nicht kann.
     virtual bool setDevice(const QString& device) { Q_UNUSED(device); return false; }
+    virtual bool canSetDevice() const { return false; }
 
     QImage lastFrame() const { return m_lastFrame; }
 
