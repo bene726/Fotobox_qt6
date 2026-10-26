@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QGuiApplication>
+#include <QLoggingCategory>
 
 #include "MainWindow.h"
 #include "core/Config.h"
@@ -79,6 +80,12 @@ QString helpText(QCommandLineParser& parser)
 
 int main(int argc, char* argv[])
 {
+    // Guenstige Webcams haengen an ihre MJPEG-Bilder ein paar Fuellbytes an.
+    // Qt meldet das pro Bild, was das Log unbrauchbar macht. Die Bilder sind
+    // trotzdem in Ordnung. Mit QT_LOGGING_RULES laesst es sich zurueckholen.
+    if (qEnvironmentVariableIsEmpty("QT_LOGGING_RULES"))
+        QLoggingCategory::setFilterRules("qt.gui.imageio.jpeg.warning=false");
+
     QCoreApplication::setApplicationName("fotobox");
 #ifdef FOTOBOX_VERSION_STR
     QCoreApplication::setApplicationVersion(FOTOBOX_VERSION_STR);

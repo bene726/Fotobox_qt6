@@ -544,7 +544,7 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 | Hardware | camera, liveView, trigger, led | `auto` oder ein konkretes Backend, siehe Abschnitt Kameras |
 | Hardware | liveViewDevice | Teil des Kameranamens, wenn mehrere Webcams angeschlossen sind |
 | Hardware | gphoto2Binary, rpicamBinary | Programmnamen/Pfade |
-| Hardware | liveViewWidth/Height/Fps | Auflösung des Livebilds |
+| Hardware | liveViewWidth/Height/Fps | gewünschte Auflösung des Livebilds; bei einer Webcam wird das nächstgelegene Format genommen |
 | Hardware | gpioChip, gpioLine, gpioPull, gpioDebounceMs | Taster am Pi, Details in [GPIO.md](GPIO.md) |
 | Hardware | ledPwmChip, ledPwmChannel, ledPwmFrequency | Hardware-PWM für die LED-Beleuchtung |
 
