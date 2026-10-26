@@ -151,10 +151,17 @@ also je ein zweipoliger Stecker.
 > In der Konfiguration steht die **BCM-Nummer**, nicht die Pin-Nummer am Header.
 > GPIO 17 ist Pin 11, nicht Pin 17.
 
-Warum GPIO 12 für die LED: Die Pins 0 bis 8 sind beim Booten auf High gezogen. Hinge
-der Transistor dort, würde die Beleuchtung während des Hochfahrens leuchten. GPIO 12
-liegt im Bereich, der beim Booten auf Low liegt, die LED bleibt also dunkel, bis die
-Fotobox sie ansteuert.
+Warum ausgerechnet GPIO 12 für die LED, obwohl auf dem Pi 5 jeder Pin ginge:
+
+1. **Dunkel beim Booten.** Die Pins 0 bis 8 werden beim Hochfahren auf High gezogen.
+   Hinge der Transistor dort, würde die Beleuchtung während des Bootens leuchten.
+   GPIO 12 liegt im Bereich, der auf Low gezogen wird.
+2. **Funktioniert auch auf einem Pi 4.** GPIO 12 ist dort einer der vier Pins mit
+   echter Hardware-PWM. Dieselbe Verdrahtung läuft also auf beiden Modellen, nur die
+   Zeile in der `config.txt` unterscheidet sich.
+3. **GND liegt daneben.** Pin 30 und Pin 32 sind benachbart in derselben Reihe.
+4. **Weit weg vom Taster.** Pin 11 und Pin 32 liegen an entgegengesetzten Enden,
+   die Kabel kommen sich nicht ins Gehege.
 
 Passend dazu in die `config.json`:
 
