@@ -14,7 +14,7 @@
 - [x] Case-insensitive Dateifilter (JPG / PNG)
 - [x] QR-Code optional ein-/ausblendbar
 - [x] gphoto2-Aufnahme mit der Canon EOS 600D getestet (2,7 s bei Large Fine)
-- [ ] Schriften (OFL) in `fonts/` ablegen, damit die Designs am Pi wie geplant aussehen
+- [x] Schriften in `fonts/` abgelegt, alle Designs nutzen ihre vorgesehenen Familien
 - [x] LED-PWM implementiert (sysfs)
 - [ ] Taster und LED auf dem Pi 5 testen
 
@@ -25,9 +25,8 @@
 - [ ] rpicam-vid LiveView ist vorhanden, aber ungetestet (nur nötig mit Pi-Kamera)
 - [x] GPIO-Taster implementiert (Kernel-uAPI v2, kein libgpiod nötig)
 - [ ] Bildschirmtastatur (Qt Virtual Keyboard) auf dem Pi
-- [ ] LED heller schalten während des Countdowns
 - [ ] Upload-Status-Overlay (Nextcloud)
-- [ ] Farbe des Ausschalt-Knopfes an das jeweilige Design anpassen
+- [x] Farbe des Ausschalt-Knopfes an das jeweilige Design angepasst
 - [x] Auslöser auf dem Touchscreen
 - [x] Kamera im Einstellungsmenü wählbar
 - [ ] Galerie-Ansicht auf dem Touchscreen

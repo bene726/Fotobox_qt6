@@ -336,10 +336,10 @@ und schaltet sofort um, der Umweg über die Konfigurationsdatei entfällt also.
 Sechs Designs sind eingebaut und im Einstellungsmenü umschaltbar: **Retro Photobooth** (Standard),
 **Neon Party**, **Elegant**, **Hochzeit Rosé**, **Hochzeit Botanik** und **Pool Party**.
 Sie liegen als Token-Sets in `src/ui/Theme.cpp`.
-Die vorgesehenen Schriften (Archivo Black, Special Elite, Bebas Neue, Rubik, Cormorant Garamond, Lato,
-Great Vibes, Montserrat, Playfair Display, Fredoka, Nunito)
-werden aus einem Ordner `fonts/` neben dem Programm oder im Arbeitsverzeichnis geladen, wenn vorhanden.
-Fehlen sie, greifen Systemschriften.
+Die Schriften liegen in [fonts/](fonts/) und werden beim Start geladen, damit alle Designs
+überall gleich aussehen. Das Paket installiert sie nach `/usr/share/fotobox/fonts`.
+Welche Schrift zu welchem Design gehört und unter welcher Lizenz sie steht, steht in
+[fonts/README.md](fonts/README.md).
 
 ### Start auf dem Raspberry Pi
 

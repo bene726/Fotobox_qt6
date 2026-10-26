@@ -155,14 +155,15 @@ QString Theme::settingsStyle() const
         "QPushButton { color: %16; background-color: %17; border: %2px solid %18; border-radius: %4px;"
         "  padding: 12px 26px; font-family: \"%20\"; font-size: 17px; %8 }"
         "QPushButton#primary { color: %15; background-color: %9; border-color: %3; }"
-        "QPushButton#danger { color: #ffffff; background-color: #b3261e; border-color: #b3261e; }"
+        "QPushButton#danger { color: %21; background-color: %22; border-color: %22; }"
         "QPushButton:pressed { background-color: %11; }")
         .arg(rgba(panel)).arg(panelBorderWidth).arg(rgba(panelBorder)).arg(radius)
         .arg(rgba(text), bodyFamily(), displayFamily(), title)
         .arg(rgba(primaryBg), rgba(sliderTrack), rgba(sliderFill), rgba(sliderHandle))
         .arg(sliderHandleBorderWidth).arg(rgba(sliderHandleBorder))
         .arg(rgba(primaryText), rgba(secondaryText), rgba(secondaryBg), rgba(secondaryBorder))
-        .arg(scriptDisplay ? 40 : 32).arg(controlFamily());
+        .arg(scriptDisplay ? 40 : 32).arg(controlFamily())
+        .arg(rgba(dangerText), rgba(dangerBg));
 }
 
 QString Theme::comboPopupStyle() const
@@ -216,6 +217,8 @@ static Theme retro()
     t.sliderHandleBorder = black;
     t.sliderHandleBorderWidth = 4;
     t.primaryBg = red;
+    t.dangerBg = QColor(139, 26, 18);
+    t.dangerText = paper;
     t.primaryText = paper;
     t.secondaryBg = paper;
     t.secondaryText = black;
@@ -264,6 +267,8 @@ static Theme neon()
     t.sliderHandleBorder = white;
     t.sliderHandleBorderWidth = 0;
     t.primaryBg = cyan;
+    t.dangerBg = pink;
+    t.dangerText = dark;
     t.primaryText = dark;
     t.secondaryBg = QColor(0, 0, 0, 0);
     t.secondaryText = white;
@@ -311,6 +316,8 @@ static Theme elegant()
     t.sliderHandleBorder = gold;
     t.sliderHandleBorderWidth = 2;
     t.primaryBg = ink;
+    t.dangerBg = QColor(140, 47, 42);
+    t.dangerText = cream;
     t.primaryText = cream;
     t.secondaryBg = QColor(0, 0, 0, 0);
     t.secondaryText = ink;
@@ -359,6 +366,8 @@ static Theme weddingBlush()
     t.sliderHandleBorder = rose;
     t.sliderHandleBorderWidth = 3;
     t.primaryBg = rose;
+    t.dangerBg = QColor(125, 46, 61);
+    t.dangerText = white;
     t.primaryText = white;
     t.secondaryBg = QColor(0, 0, 0, 0);
     t.secondaryText = deepRose;
@@ -408,6 +417,8 @@ static Theme weddingGreen()
     t.sliderHandleBorder = forest;
     t.sliderHandleBorderWidth = 3;
     t.primaryBg = forest;
+    t.dangerBg = QColor(156, 74, 51);
+    t.dangerText = ivory;
     t.primaryText = ivory;
     t.secondaryBg = QColor(0, 0, 0, 0);
     t.secondaryText = forest;
@@ -456,6 +467,8 @@ static Theme pool()
     t.sliderHandleBorder = white;
     t.sliderHandleBorderWidth = 3;
     t.primaryBg = yellow;
+    t.dangerBg = QColor(228, 87, 46);
+    t.dangerText = white;
     t.primaryText = navy;
     t.secondaryBg = QColor(210, 236, 244);
     t.secondaryText = navy;

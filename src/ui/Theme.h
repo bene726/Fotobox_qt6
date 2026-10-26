@@ -28,6 +28,7 @@ struct Theme
     QColor sliderTrack, sliderFill, sliderHandle, sliderHandleBorder;
     int    sliderHandleBorderWidth = 0;
     QColor primaryBg, primaryText;
+    QColor dangerBg{179, 38, 30}, dangerText{255, 255, 255};  // Ausschalten
     QColor secondaryBg, secondaryText, secondaryBorder;
     QColor passwordBg, passwordBorder, passwordText;
     int    passwordBorderWidth = 0;
