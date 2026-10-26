@@ -61,4 +61,7 @@ struct Config
     // Sucht die Konfiguration in der ueblichen Reihenfolge:
     // $FOTOBOX_CONFIG, ./config.json, ~/.config/fotobox/config.json
     static QString findDefaultPath();
+
+    // Der Standardort zum Anlegen: ~/.config/fotobox/config.json
+    static QString defaultSavePath();
 };

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
@@ -45,6 +46,12 @@ QString Config::findDefaultPath()
             return c;
 
     return {};
+}
+
+QString Config::defaultSavePath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+           + "/fotobox/config.json";
 }
 
 Config Config::load(const QString& path)
@@ -117,8 +124,16 @@ Config Config::load(const QString& path)
 
 bool Config::save()
 {
+    // Ohne geladene Datei an den Standardort schreiben, nicht ins gerade
+    // aktuelle Arbeitsverzeichnis: das ist je nach Start ein anderes.
     if (sourcePath.isEmpty())
-        sourcePath = QDir::currentPath() + "/config.json";
+        sourcePath = defaultSavePath();
+
+    const QString dir = QFileInfo(sourcePath).absolutePath();
+    if (!QDir().mkpath(dir)) {
+        qWarning() << "Ordner nicht anzulegen:" << dir;
+        return false;
+    }
 
     // Vorhandene Datei einlesen, damit nichts verloren geht.
     QJsonObject root;
