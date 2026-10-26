@@ -73,13 +73,15 @@ angeschlossen, wählt `"liveViewDevice"` die richtige über einen Teil des Namen
 #### Spiegelreflex am Raspberry Pi
 
 Auf einem Desktop-System greift `gvfs` ungefragt auf angeschlossene Kameras zu
-und blockiert damit `gphoto2`. Die Fotobox meldet das als „Kamera ist von einem
-anderen Programm belegt". Dauerhaft abstellen:
+und blockiert damit `gphoto2`. Der Fehler lautet dann „Konnte das USB-Gerät nicht
+beanspruchen" bzw. `Could not claim the USB device` (Code −53). Dauerhaft abstellen:
 
 ```bash
-systemctl --user mask gvfs-gphoto2-volume-monitor
-systemctl --user stop gvfs-gphoto2-volume-monitor
+systemctl --user mask gvfs-gphoto2-volume-monitor.service && systemctl --user stop gvfs-gphoto2-volume-monitor.service && pkill -f gvfs-gphoto2
 ```
+
+Die Fotobox warnt beim Start, wenn `gvfs-gphoto2` läuft, und zeigt im Fehlerfall
+„Kamera ist von einem anderen Programm belegt" statt der technischen Meldung.
 
 Verbindung testen:
 

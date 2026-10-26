@@ -2,15 +2,46 @@
 
 #include <QDateTime>
 #include <QDebug>
+#include <QProcessEnvironment>
 #include <QDir>
 #include <QFile>
 
 namespace {
+
+#ifdef __linux__
+// gvfs greift auf dem Desktop ungefragt auf angeschlossene Kameras zu und
+// belegt sie. Das faellt sonst erst beim ersten Foto auf.
+bool gvfsGphotoRunning()
+{
+    const QStringList pids = QDir("/proc").entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString& pid : pids) {
+        bool isPid = false;
+        pid.toInt(&isPid);
+        if (!isPid)
+            continue;
+        QFile f("/proc/" + pid + "/comm");
+        if (!f.open(QIODevice::ReadOnly))
+            continue;
+        // /proc/PID/comm ist auf 15 Zeichen gekuerzt: "gvfs-gphoto2-vo"
+        if (QString::fromLocal8Bit(f.readAll()).trimmed().contains("gvfs-gphoto2"))
+            return true;
+    }
+    return false;
+}
+#endif
+
 // gphoto2 meldet technisch. Die haeufigen Faelle werden in eine Anweisung
 // uebersetzt, die auf dem Display der Fotobox weiterhilft.
 QString friendlyError(const QString& raw)
 {
     const QString r = raw.toLower();
+    // Die Fehlercodes von libgphoto2 sind unabhaengig von der Sprache und
+    // deshalb die zuverlaessigste Zuordnung.
+    if (r.contains("(-53"))
+        return QString::fromUtf8("Kamera ist von einem anderen Programm belegt. "
+                                 "Auf dem Pi: gvfs-gphoto2 beenden.");
+    if (r.contains("(-105"))
+        return QString::fromUtf8("Keine Kamera gefunden. USB-Kabel prüfen und Kamera einschalten.");
     if (r.contains("could not claim") || r.contains("device busy"))
         return QString::fromUtf8("Kamera ist von einem anderen Programm belegt. "
                                  "Auf dem Pi: gvfs-gphoto2 beenden.");
@@ -31,8 +62,26 @@ CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
     : Camera(parent)
     , m_binary(binary)
 {
+    // Feste Sprache: sonst meldet gphoto2 je nach System auf Deutsch und die
+    // Zuordnung der Meldungen greift nicht mehr.
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LC_ALL", "C");
+    env.insert("LANGUAGE", "C");
+    m_proc.setProcessEnvironment(env);
+
     connect(&m_proc, &QProcess::finished, this, &CameraGPhoto::onFinished);
     connect(&m_proc, &QProcess::errorOccurred, this, &CameraGPhoto::onError);
+
+#ifdef __linux__
+    if (gvfsGphotoRunning()) {
+        qWarning().noquote()
+            << "ACHTUNG: gvfs-gphoto2 laeuft und belegt die Kamera. Das erste Foto wird\n"
+               "         fehlschlagen. Dauerhaft abstellen mit:\n"
+               "           systemctl --user mask gvfs-gphoto2-volume-monitor.service\n"
+               "           systemctl --user stop gvfs-gphoto2-volume-monitor.service\n"
+               "           pkill -f gvfs-gphoto2";
+    }
+#endif
 }
 
 CameraGPhoto::~CameraGPhoto()
