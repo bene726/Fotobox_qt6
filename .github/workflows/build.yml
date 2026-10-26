@@ -129,11 +129,23 @@ jobs:
           path: debs
       - name: Pakete umbenennen (Distribution im Dateinamen)
         run: |
+          set -euo pipefail
           mkdir -p out
           for d in $DISTS; do
-            for f in debs/deb-$d/*.deb; do
+            # Mehrere Artefakte landen in debs/deb-<dist>/, ein einzelnes direkt in debs/.
+            dir="debs/deb-$d"
+            if [ ! -d "$dir" ]; then dir="debs"; fi
+            found=0
+            for f in "$dir"/*.deb; do
+              [ -e "$f" ] || continue
               cp "$f" "out/$(basename "${f%.deb}")_$d.deb"
+              found=1
             done
+            if [ "$found" -eq 0 ]; then
+              echo "::error::Kein Paket fuer $d gefunden. Inhalt von debs/:"
+              find debs -type f | sed 's/^/  /'
+              exit 1
+            fi
           done
           cd out && sha256sum *.deb | tee SHA256SUMS
       - name: Release-Text erzeugen
@@ -196,7 +208,7 @@ jobs:
           APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
         run: |
           for d in $DISTS; do
-            python3 scripts/apt_repo.py add --repo site --dist "$d" --component "$CHANNEL" debs/deb-$d/*.deb
+            python3 scripts/apt_repo.py add --repo site --dist "$d" --component "$CHANNEL" out/*_"$d".deb
           done
           python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 --prune-dists \
             --base-url "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
