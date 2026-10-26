@@ -54,38 +54,48 @@ QString Config::defaultSavePath()
            + "/fotobox/config.json";
 }
 
-Config Config::load(const QString& path)
+QString Config::systemPath()
 {
-    Config c = defaults();
+    const QString env = qEnvironmentVariable("FOTOBOX_SYSTEM_CONFIG");
+    return env.isEmpty() ? QStringLiteral("/etc/fotobox/config.json") : env;
+}
 
-    if (path.isEmpty()) {
-        qWarning() << "Keine Konfiguration gefunden, nutze Standardwerte."
-                   << "Bildordner:" << c.fullImagePath();
-        return c;
-    }
+QString Config::eventConfigPath() const
+{
+    if (eventConfigFile.isEmpty() || basePath.isEmpty())
+        return {};
+    return QDir::cleanPath(expandHome(basePath) + "/" + eventConfigFile);
+}
 
+// Liest eine Datei ueber die bestehenden Werte. Felder, die fehlen, bleiben
+// unveraendert. allowPaths=false ignoriert basePath: die Nextcloud-Datei liegt
+// selbst darin und koennte sich sonst den Boden unter den Fuessen wegziehen.
+bool Config::applyFile(const QString& path, bool allowPaths)
+{
     QFile f(path);
-    if (!f.open(QIODevice::ReadOnly)) {
-        qWarning() << "Konfiguration nicht lesbar:" << path;
-        return c;
-    }
+    if (!f.open(QIODevice::ReadOnly))
+        return false;
 
     QJsonParseError err;
     const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
     if (err.error != QJsonParseError::NoError || !doc.isObject()) {
-        qWarning() << "Konfiguration ungueltig:" << path << err.errorString();
-        return c;
+        qWarning() << "Konfiguration ungueltig, wird uebersprungen:" << path << err.errorString();
+        return false;
     }
 
+    Config& c = *this;
     const QJsonObject root = doc.object();
-
     const QJsonObject sys = root.value("SystemData").toObject();
-    c.basePath  = sys.value("basePath").toString(c.basePath);
+    if (!allowPaths && sys.contains("basePath"))
+        qWarning() << "basePath in" << path << "wird ignoriert: die Datei liegt selbst darin.";
+    if (allowPaths)
+        c.basePath = sys.value("basePath").toString(c.basePath);
     c.yearPath  = sys.value("yearPath").toString(c.yearPath);
     c.partyPath = sys.value("partyPath").toString(c.partyPath);
     c.partyname = sys.value("partyname").toString(c.partyname);
     c.link      = sys.value("link").toString(c.link);
     c.password  = sys.value("password").toString(c.password);
+    c.eventConfigFile = sys.value("eventConfigFile").toString(c.eventConfigFile);
 
     const QJsonObject beh = root.value("Behaviour").toObject();
     c.countdownSeconds    = beh.value("countdownSeconds").toInt(c.countdownSeconds);
@@ -117,8 +127,56 @@ Config Config::load(const QString& path)
     c.ledPwmChannel   = hw.value("ledPwmChannel").toInt(c.ledPwmChannel);
     c.ledPwmFrequency = hw.value("ledPwmFrequency").toInt(c.ledPwmFrequency);
 
-    c.sourcePath = path;
-    qInfo() << "Konfiguration geladen:" << path;
+    c.loadedFrom << path;
+    return true;
+}
+
+Config Config::load(const QString& path)
+{
+    Config c = defaults();
+    if (path.isEmpty())
+        return c;
+    if (!c.applyFile(path, true))
+        qWarning() << "Konfiguration nicht lesbar:" << path;
+    else
+        c.sourcePath = path;
+    return c;
+}
+
+Config Config::loadLayered(const QString& explicitPath)
+{
+    Config c = defaults();
+
+    // 1. systemweit
+    c.applyFile(systemPath(), true);
+
+    // 2. persoenlich: hierhin schreibt "Speichern"
+    const QString userPath = defaultSavePath();
+    c.applyFile(userPath, true);
+    c.sourcePath = userPath;
+
+    // 3. ausdruecklich genannte Datei
+    QString explicitly = explicitPath;
+    if (explicitly.isEmpty())
+        explicitly = qEnvironmentVariable("FOTOBOX_CONFIG");
+    if (!explicitly.isEmpty()) {
+        if (c.applyFile(explicitly, true))
+            c.sourcePath = explicitly;
+        else
+            qWarning() << "Konfiguration nicht lesbar:" << explicitly;
+    }
+
+    // 4. Nextcloud: Link, Passwort und Eventname, vom Handy aus aenderbar
+    const QString eventPath = c.eventConfigPath();
+    if (!eventPath.isEmpty())
+        c.applyFile(eventPath, false);
+
+    if (c.loadedFrom.isEmpty())
+        qWarning() << "Keine Konfiguration gefunden, nutze Standardwerte."
+                   << "Erwartet z.B. unter" << userPath;
+    else
+        qInfo().noquote() << "Konfiguration aus:" << c.loadedFrom.join(" + ");
+
     return c;
 }
 

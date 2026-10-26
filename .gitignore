@@ -55,3 +55,4 @@ Config.js
 # Python
 __pycache__/
 *.pyc
+fotobox.json

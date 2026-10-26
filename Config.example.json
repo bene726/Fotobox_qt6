@@ -5,7 +5,8 @@
     "partyPath": "Mein_Event",
     "partyname": "Mein_Event",
     "link": "https://example.com",
-    "password": "secret"
+    "password": "secret",
+    "eventConfigFile": "fotobox.json"
   },
   "Behaviour": {
     "countdownSeconds": 3,

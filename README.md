@@ -337,9 +337,7 @@ Die Fotobox ist eine Anwendung mit Oberfläche und braucht einen Bildschirm.
 `could not connect to display`. Die Optionen `--list-cameras`, `--gpio-info`,
 `--gpio-watch`, `--help` und `--version` laufen dagegen auch über SSH.
 
-Ohne Angabe wird die Konfiguration in dieser Reihenfolge gesucht:
-`$FOTOBOX_CONFIG`, `./config.json`, `~/.config/fotobox/config.json`.
-Fehlt sie, laufen Standardwerte mit dem Bildordner `~/Pictures/Fotobox/<Jahr>/Test_Event`.
+Wo die Konfiguration liegt, steht im Abschnitt [Konfiguration](#️-konfiguration).
 
 ---
 
@@ -459,17 +457,68 @@ Damit werden am Pi standardmäßig `gphoto`, `rpicam` und `gpio` als Backends ge
 
 ## ⚙️ Konfiguration
 
-Die Anwendung nutzt eine **lokale JSON-Konfigurationsdatei**,  
-die bewusst **nicht** im Repository liegt.
+Die Anwendung liest **mehrere JSON-Dateien übereinander**. Jede Ebene überschreibt
+nur die Felder, die sie selbst enthält. Keine davon liegt im Repository.
 
-### Beispiel: `Config.example.json`
+| # | Datei | Gedacht für | Wer ändert sie |
+|---|---|---|---|
+| 1 | `/etc/fotobox/config.json` | Hardware, Pfade, Backends | einmal beim Einrichten, per SSH |
+| 2 | `~/.config/fotobox/config.json` | was am Gerät eingestellt wird | die Fotobox selbst beim Speichern |
+| 3 | Datei aus `--config` oder `$FOTOBOX_CONFIG` | Sonderfälle und Tests | von Hand |
+| 4 | `<basePath>/fotobox.json` | **Link, Passwort, Eventname** | du, vom Handy aus über Nextcloud |
+
+Die letzte Ebene liegt im Nextcloud-Ordner und wird dorthin synchronisiert. Damit
+änderst du den QR-Link und das Passwort für das nächste Fest, ohne den Pi anzufassen.
+Beim Start steht im Log, welche Dateien tatsächlich gelesen wurden.
+
+### Einrichten auf dem Pi
+
+```bash
+sudo mkdir -p /etc/fotobox && sudo cp /usr/share/doc/fotobox/Config.example.json /etc/fotobox/config.json && sudo nano /etc/fotobox/config.json
+```
+
+### Die Datei in der Nextcloud
+
+Sie liegt direkt in `basePath`, heißt standardmäßig `fotobox.json` und enthält nur
+das, was sich pro Fest ändert:
+
+```json
+{
+  "SystemData": {
+    "link": "https://cloud.example/s/abc123",
+    "password": "sommer2026",
+    "partyname": "Sommerfest 2026",
+    "partyPath": "Sommerfest"
+  }
+}
+```
+
+Ein anderer Dateiname geht über `"eventConfigFile"`, ein leerer Wert schaltet diese
+Ebene ab.
+
+> `basePath` wird in dieser Datei **ignoriert**. Sie liegt selbst darin und würde sich
+> sonst den Boden unter den Füßen wegziehen. Die Fotobox schreibt dazu eine Warnung ins Log.
+
+### Was wohin gehört
+
+- **Hardware und Pfade** nach `/etc`: GPIO-Pins, PWM, Kamera-Backends, `basePath`.
+- **Link, Passwort, Eventname** in die Nextcloud-Datei.
+- **Design, LED-Helligkeit, Countdown** stellst du am Touchscreen ein, die Fotobox
+  speichert sie selbst in Ebene 2.
+
+> Steht ein Feld in der Nextcloud-Datei, gewinnt es immer. Eine Einstellung, die du am
+> Touchscreen änderst, wird dadurch beim nächsten Start wieder überschrieben. Deshalb
+> gehört dort nur hinein, was sich wirklich pro Fest ändert.
+
+### Alle Felder: `Config.example.json`
 
 Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 
 | Abschnitt | Feld | Bedeutung |
 |---|---|---|
 | SystemData | basePath, yearPath, partyPath | Bildordner = basePath/yearPath/partyPath (`~` erlaubt) |
-| SystemData | link | URL für den QR-Code |
+| SystemData | link, password | URL für den QR-Code und zugehöriges Passwort |
+| SystemData | eventConfigFile | Name der Nextcloud-Datei, Standard `fotobox.json` |
 | Behaviour | countdownSeconds | Countdown-Länge |
 | Behaviour | slideshowIntervalMs, photoDisplayMs, liveViewTimeoutMs | Zeiten in ms |
 | Behaviour | showQr, qrSize | QR-Code ein/aus und Kantenlänge |
@@ -482,7 +531,7 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 | Hardware | gpioChip, gpioLine, gpioPull, gpioDebounceMs | Taster am Pi, Details in [GPIO.md](GPIO.md) |
 | Hardware | ledPwmChip, ledPwmChannel, ledPwmFrequency | Hardware-PWM für die LED-Beleuchtung |
 
-> Die echte `config.json` wird per `.gitignore` ausgeschlossen.
+> Die echten Konfigurationsdateien werden per `.gitignore` ausgeschlossen.
 
 ---
 

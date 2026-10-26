@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <QStringList>
 
 // Zentrale Konfiguration der Fotobox.
 // Wird aus einer JSON-Datei geladen, alle Felder sind optional
@@ -13,6 +14,9 @@ struct Config
     QString partyname;    // Anzeigename
     QString link;         // URL, die als QR-Code angezeigt wird
     QString password;     // optional, z.B. fuer den Share-Link
+    // Datei im Nextcloud-Ordner (relativ zu basePath), die Link, Passwort und
+    // Eventnamen ueberschreibt. Leer schaltet diese Ebene ab.
+    QString eventConfigFile = "fotobox.json";
 
     // --- Verhalten (Abschnitt "Behaviour") ---
     int  countdownSeconds   = 3;
@@ -45,13 +49,29 @@ struct Config
     int     ledPwmChannel   = 0;
     int     ledPwmFrequency = 1000;     // Hz
 
-    // Pfad der geladenen Datei (leer = Standardwerte)
+    // Datei, in die "Speichern" schreibt (die persoenliche Ebene)
     QString sourcePath;
+
+    // Alle tatsaechlich gelesenen Dateien, in der Reihenfolge der Anwendung
+    QStringList loadedFrom;
 
     // Vollstaendiger Bildordner: basePath/yearPath/partyPath
     QString fullImagePath() const;
 
+    // Liest eine Datei ueber die bestehenden Werte (spaetere gewinnen).
+    // allowPaths=false ignoriert basePath.
+    bool applyFile(const QString& path, bool allowPaths);
+
     static Config defaults();
+
+    // Laedt alle Ebenen uebereinander. Spaetere gewinnen:
+    //   1. /etc/fotobox/config.json              systemweit
+    //   2. ~/.config/fotobox/config.json         persoenlich, hierhin speichert die App
+    //   3. explicitPath                          --config oder $FOTOBOX_CONFIG
+    //   4. <basePath>/<eventConfigFile>          Nextcloud, fuer Link und Passwort
+    static Config loadLayered(const QString& explicitPath = {});
+
+    // Einzelne Datei laden (ohne Ebenen), vor allem fuer Tests
     static Config load(const QString& path);
 
     // Schreibt die aenderbaren Felder zurueck in die Datei (sourcePath,
@@ -64,4 +84,10 @@ struct Config
 
     // Der Standardort zum Anlegen: ~/.config/fotobox/config.json
     static QString defaultSavePath();
+
+    // /etc/fotobox/config.json, ueberschreibbar mit $FOTOBOX_SYSTEM_CONFIG
+    static QString systemPath();
+
+    // Pfad der Nextcloud-Datei, leer wenn abgeschaltet
+    QString eventConfigPath() const;
 };

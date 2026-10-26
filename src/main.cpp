@@ -110,14 +110,13 @@ int main(int argc, char* argv[])
 
     QApplication app(argc, argv);
 
-    const QString cfgPath = cli.parser.isSet(cli.config) ? cli.parser.value(cli.config)
-                                                         : Config::findDefaultPath();
-    Config cfg = Config::load(cfgPath);
+    Config cfg = Config::loadLayered(cli.parser.isSet(cli.config) ? cli.parser.value(cli.config)
+                                                                  : QString());
 
     // Wurde eine Datei ausdruecklich genannt, soll "Speichern" auch dorthin
     // schreiben, selbst wenn sie noch gar nicht existiert.
     if (cli.parser.isSet(cli.config))
-        cfg.sourcePath = cfgPath;
+        cfg.sourcePath = cli.parser.value(cli.config);
 
     if (cli.parser.isSet(cli.camera))   cfg.cameraBackend   = cli.parser.value(cli.camera);
     if (cli.parser.isSet(cli.liveView)) cfg.liveViewBackend = cli.parser.value(cli.liveView);
