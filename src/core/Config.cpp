@@ -237,6 +237,33 @@ bool Config::save()
     return true;
 }
 
+QJsonObject Config::toJson() const
+{
+    QJsonObject sys{
+        {"basePath", basePath}, {"yearPath", yearPath}, {"partyPath", partyPath},
+        {"partyname", partyname}, {"link", link},
+        {"password", password.isEmpty() ? QString() : QStringLiteral("(gesetzt)")},
+        {"eventConfigFile", eventConfigFile},
+    };
+    QJsonObject beh{
+        {"countdownSeconds", countdownSeconds}, {"slideshowIntervalMs", slideshowIntervalMs},
+        {"photoDisplayMs", photoDisplayMs}, {"liveViewTimeoutMs", liveViewTimeoutMs},
+        {"showQr", showQr}, {"qrSize", qrSize}, {"theme", theme},
+    };
+    QJsonObject hw{
+        {"camera", cameraBackend}, {"liveView", liveViewBackend}, {"trigger", triggerBackend},
+        {"led", ledBackend}, {"gphoto2Binary", gphoto2Binary}, {"rpicamBinary", rpicamBinary},
+        {"liveViewDevice", liveViewDevice},
+        {"liveViewWidth", liveViewWidth}, {"liveViewHeight", liveViewHeight},
+        {"liveViewFps", liveViewFps},
+        {"gpioChip", gpioChip}, {"gpioLine", gpioLine}, {"gpioPull", gpioPull},
+        {"gpioDebounceMs", gpioDebounceMs},
+        {"ledBrightness", ledBrightness}, {"ledPwmChip", ledPwmChip},
+        {"ledPwmChannel", ledPwmChannel}, {"ledPwmFrequency", ledPwmFrequency},
+    };
+    return QJsonObject{{"SystemData", sys}, {"Behaviour", beh}, {"Hardware", hw}};
+}
+
 QString Config::fullImagePath() const
 {
     return QDir::cleanPath(expandHome(basePath) + "/" + yearPath + "/" + partyPath);

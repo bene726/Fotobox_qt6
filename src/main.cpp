@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QPainter>
 #include <QTextStream>
+#include <QJsonDocument>
 #include <QTimer>
 
 namespace {
@@ -37,6 +38,7 @@ struct Cli
                             "zustand"};
     QCommandLineOption listCameras{"list-cameras", "Verfuegbare Kameras fuer das Livebild auflisten"};
     QCommandLineOption testCamera{"test-camera", "Livebild testen: kommen Bilder an?"};
+    QCommandLineOption dumpConfig{"dump-config", "Wirksame Einstellungen und ihre Herkunft zeigen"};
     QCommandLineOption gpioInfo{"gpio-info", "GPIO-Leitungen auflisten"};
     QCommandLineOption gpioWatch{"gpio-watch", "GPIO-Leitungen beobachten (Pin des Tasters finden)"};
 
@@ -44,11 +46,11 @@ struct Cli
     {
         parser.setApplicationDescription(
             "Fotobox\n\n"
-            "Die Optionen --list-cameras, --test-camera, --gpio-info, --gpio-watch, --help\n"
-            "und --version\n"
+            "Die Optionen --dump-config, --list-cameras, --test-camera, --gpio-info,\n"
+            "--gpio-watch, --help und --version\n"
             "brauchen keinen Bildschirm und laufen auch ueber SSH.");
         parser.addOptions({config, windowed, camera, liveView, trigger, theme, screenshot, show,
-                           listCameras, testCamera, gpioInfo, gpioWatch});
+                           listCameras, testCamera, dumpConfig, gpioInfo, gpioWatch});
     }
 };
 
@@ -120,6 +122,26 @@ int main(int argc, char* argv[])
     }
 
     // Diagnose ohne Oberflaeche
+    if (cli.parser.isSet(cli.dumpConfig)) {
+        QCoreApplication app(argc, argv);
+        Config cfg = Config::loadLayered(cli.parser.isSet(cli.config) ? cli.parser.value(cli.config)
+                                                                      : QString());
+        print(out, "\nGelesene Dateien, spaetere gewinnen:\n");
+        if (cfg.loadedFrom.isEmpty())
+            print(out, "  (keine, es gelten die Standardwerte)\n");
+        for (const QString& f : cfg.loadedFrom)
+            print(out, "  " + f + "\n");
+        print(out, "\nNicht gelesen (nicht vorhanden):\n");
+        const QStringList moegliche{Config::systemPath(), Config::defaultSavePath(),
+                                    cfg.eventConfigPath()};
+        for (const QString& f : moegliche)
+            if (!f.isEmpty() && !cfg.loadedFrom.contains(f))
+                print(out, "  " + f + "\n");
+        print(out, "\nWirksame Einstellungen:\n"
+                   + QString::fromUtf8(QJsonDocument(cfg.toJson()).toJson()));
+        print(out, "Bildordner: " + cfg.fullImagePath() + "\n");
+        return 0;
+    }
     if (cli.parser.isSet(cli.listCameras)) {
         ensureHeadlessPlatform();
         QGuiApplication app(argc, argv);

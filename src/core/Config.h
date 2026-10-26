@@ -1,4 +1,5 @@
 #pragma once
+#include <QJsonObject>
 #include <QString>
 #include <QStringList>
 
@@ -57,6 +58,9 @@ struct Config
 
     // Vollstaendiger Bildordner: basePath/yearPath/partyPath
     QString fullImagePath() const;
+
+    // Alle wirksamen Werte als JSON, fuer --dump-config
+    QJsonObject toJson() const;
 
     // Liest eine Datei ueber die bestehenden Werte (spaetere gewinnen).
     // allowPaths=false ignoriert basePath.

@@ -320,6 +320,7 @@ Nützliche Optionen:
 | `--trigger keyboard\|gpio\|timer` | Auslöser erzwingen |
 | `--theme <id>` | Design erzwingen (retro, neon, elegant, wedding-blush, wedding-green, pool) |
 | `--screenshot <datei> --show settings` | Bild rendern und beenden (für Tests) |
+| `--dump-config` | zeigt, welche Dateien gelesen wurden und welche Werte gelten |
 | `--list-cameras` | erkannte Webcams für das Livebild auflisten |
 | `--test-camera` | fünf Sekunden lang zählen, ob wirklich Bilder ankommen |
 | `--gpio-info` | GPIO-Leitungen auflisten (Pi) |
@@ -486,7 +487,16 @@ nur die Felder, die sie selbst enthält. Keine davon liegt im Repository.
 
 Die letzte Ebene liegt im Nextcloud-Ordner und wird dorthin synchronisiert. Damit
 änderst du den QR-Link und das Passwort für das nächste Fest, ohne den Pi anzufassen.
-Beim Start steht im Log, welche Dateien tatsächlich gelesen wurden.
+
+Welcher Wert am Ende gilt und woher er kommt, zeigt:
+
+```bash
+fotobox --dump-config
+```
+
+Die Ausgabe nennt die gelesenen Dateien in der Reihenfolge ihrer Anwendung, die
+nicht vorhandenen, alle wirksamen Werte und den Bildordner. Das Passwort erscheint
+nur als `(gesetzt)`, die Ausgabe lässt sich also gefahrlos weitergeben.
 
 ### Einrichten auf dem Pi
 
