@@ -81,27 +81,33 @@ Beide Modi brauchen keinen Bildschirm und laufen auch über SSH.
 Das LED-Band bringt Vorwiderstände mit und wird über einen Transistor geschaltet.
 Der Pi liefert nur das **PWM-Signal** an die Basis bzw. das Gate.
 
-### Hardware-PWM
-Nur bestimmte Pins können echte Hardware-PWM:
+### Auf dem Pi 5
+`pwm-pio` nutzt die programmierbare IO-Einheit des RP1 und läuft auf **jedem**
+GPIO von 0 bis 27, hardware-getaktet:
 
-| GPIO | Header-Pin | Kanal |
+```
+dtoverlay=pwm-pio,gpio=12
+```
+
+Die Pinwahl ist damit frei. Bis zu vier solcher Ausgänge sind möglich, solange
+nichts anderes die PIO-Einheit belegt.
+
+### Auf dem Pi 4 und älter
+Der PWM-Block des SoC bedient nur vier Pins:
+
+| GPIO | Header-Pin | Eintrag |
 |---|---|---|
-| 12 | 32 | 0 |
-| 13 | 33 | 1 |
-| 18 | 12 | 2 |
-| 19 | 35 | 3 |
+| 12 | 32 | `dtoverlay=pwm,pin=12,func=4` |
+| 13 | 33 | `dtoverlay=pwm,pin=13,func=4` |
+| 18 | 12 | `dtoverlay=pwm,pin=18,func=2` |
+| 19 | 35 | `dtoverlay=pwm,pin=19,func=2` |
 
-Liegt die LED auf einem anderen Pin, springt der Kernel mit einer Software-PWM ein,
-die dieselbe Schnittstelle bereitstellt:
+### Überall
+`dtoverlay=pwm-gpio,gpio=N` erzeugt die PWM im Kernel per Software. Das geht auf
+jedem Pin, ist aber am ungenauesten und nur die Notlösung.
 
-```
-dtoverlay=pwm-gpio,gpio=25
-```
-
-Die Fotobox merkt keinen Unterschied, die Ansteuerung ist identisch. Hardware-PWM
-ist genauer und kostet keine Rechenzeit, deshalb bleibt sie die erste Wahl.
-Software-PWM aus dem Benutzerprozess heraus wäre dagegen sichtbar unruhig, und
-`pigpio` funktioniert auf dem Pi 5 nicht mehr.
+In allen drei Fällen ist die Ansteuerung identisch, die Fotobox merkt keinen
+Unterschied. `pigpio` funktioniert auf dem Pi 5 übrigens nicht mehr.
 
 Ein konkreter Belegungsvorschlag steht in der [README](README.md#-vorgeschlagene-pinbelegung).
 
@@ -109,18 +115,11 @@ Ein konkreter Belegungsvorschlag steht in der [README](README.md#-vorgeschlagene
 In `/boot/firmware/config.txt` eintragen und neu starten:
 
 ```
-# LED an GPIO 12 (Alt0)
-dtoverlay=pwm,pin=12,func=4
-
-# oder an GPIO 18 (Alt5)
-dtoverlay=pwm,pin=18,func=2
-
-# oder zwei Kanäle auf GPIO 12 und 13
-dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4
+[all]
+dtoverlay=pwm-pio,gpio=12
 ```
 
-Die erlaubten Kombinationen aus Pin und Funktion listet `dtoverlay -h pwm` auf
-dem Pi selbst auf.
+Die erlaubten Parameter listet `dtoverlay -h pwm-pio` auf dem Pi selbst auf.
 
 Prüfen:
 

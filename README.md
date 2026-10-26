@@ -167,35 +167,53 @@ Passend dazu in die `config.json`:
 }
 ```
 
-Und in `/boot/firmware/config.txt`, danach neu starten:
+Und ans Ende von `/boot/firmware/config.txt`, danach neu starten:
 
 ```
-dtoverlay=pwm,pin=12,func=4
+[all]
+dtoverlay=pwm-pio,gpio=12
 ```
 
-#### Alternativen
+Der Abschnitt `[all]` davor stellt sicher, dass die Zeile nicht in einem
+modellspezifischen Block landet, falls die Datei welche enthält.
 
-| Statt | Geht auch | Zeile in der config.txt |
-|---|---|---|
-| GPIO 12 | GPIO 18 (Pin 12, GND Pin 14) | `dtoverlay=pwm,pin=18,func=2` |
-| GPIO 12 | GPIO 13 (Pin 33) oder 19 (Pin 35) | `dtoverlay=pwm,pin=13,func=4` |
-| GPIO 17 | jeder freie GPIO, z. B. 26 (Pin 37, GND Pin 39) | – |
+#### Welches Overlay auf welchem Modell
 
-GPIO 18 teilt sich die Leitung mit der I2S-Audioausgabe. Solange die Fotobox keinen
-Ton ausgibt, stört das nicht.
+| Overlay | Läuft auf | Erlaubte Pins | Erzeugt von |
+|---|---|---|---|
+| `pwm-pio,gpio=N` | **nur Pi 5** | jedem GPIO 0–27 | PIO-Einheit des RP1, hardware-getaktet |
+| `pwm,pin=N,func=F` | Pi 4 und älter | 12 (func=4), 13 (func=4), 18 (func=2), 19 (func=2) | PWM-Block des SoC |
+| `pwm-gpio,gpio=N` | alle | jedem GPIO | Software-PWM im Kernel, am ungenauesten |
 
-#### Wenn die LED an einem anderen Pin hängt
+Auf dem **Pi 5** ist `pwm-pio` die erste Wahl: hardware-getaktet wie echte PWM, aber
+ohne Einschränkung bei der Pinwahl. Die LED darf dort also an jedem freien GPIO
+hängen, Umstecken ist nicht nötig.
 
-Echte Hardware-PWM gibt es nur auf GPIO 12, 13, 18 und 19. Für jeden anderen Pin
-liefert der Kernel eine Software-PWM über dieselbe Schnittstelle, die Fotobox merkt
-keinen Unterschied:
+Welche Kombinationen aus Pin und Funktion das installierte System kennt, verrät:
 
+```bash
+dtoverlay -h pwm-pio
+dtoverlay -h pwm
 ```
-dtoverlay=pwm-gpio,gpio=25
+
+#### Danach prüfen
+
+```bash
+ls -l /sys/class/pwm/        # muss mindestens einen pwmchip zeigen
+cat /sys/class/pwm/pwmchip0/npwm
 ```
 
-Die ist weniger exakt als die Hardware-Variante, für die Helligkeit eines LED-Bands
-aber in der Regel ausreichend. Umstecken ist also nicht zwingend.
+> Auf dem Pi 5 kann es **mehrere** PWM-Chips geben, etwa für den Lüfter. Die Fotobox
+> protokolliert beim Start alle gefundenen und welchen sie nimmt. Greift sie daneben,
+> legt `"ledPwmChip"` den richtigen fest.
+
+#### Alternativen für den Taster
+
+| Statt | Geht auch |
+|---|---|
+| GPIO 17 (Pin 11, GND Pin 9) | GPIO 26 (Pin 37, GND Pin 39) |
+| | GPIO 23 (Pin 16, GND Pin 14) |
+| | GPIO 24 (Pin 18, GND Pin 20) |
 
 #### Diese Pins besser meiden
 

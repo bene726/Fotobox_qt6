@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QFileInfo>
 #include <QFile>
 #include <QThread>
 
@@ -24,17 +25,29 @@ bool LedPwm::writeFile(const QString& path, const QString& value, QString* error
 int LedPwm::findChip(int channel)
 {
     // Die Nummer von pwmchipN haengt vom Kernel und den geladenen Overlays ab.
-    // Deshalb den ersten Chip nehmen, der genug Kanaele hat.
+    // Es kann mehrere geben, etwa den Luefter des Pi 5. Deshalb werden alle
+    // protokolliert, damit die Wahl nachvollziehbar ist und notfalls per
+    // "ledPwmChip" festgelegt werden kann.
     const QStringList chips = QDir("/sys/class/pwm").entryList({"pwmchip*"}, QDir::Dirs, QDir::Name);
+    int chosen = -1;
     for (const QString& c : chips) {
         QFile f("/sys/class/pwm/" + c + "/npwm");
         if (!f.open(QIODevice::ReadOnly))
             continue;
         const int n = f.readAll().trimmed().toInt();
-        if (n > channel)
-            return QStringView{c}.mid(7).toInt();   // "pwmchip" ist 7 Zeichen, dann die Nummer
+        const QString target = QFileInfo("/sys/class/pwm/" + c + "/device").symLinkTarget();
+        const int num = QStringView{c}.mid(7).toInt();   // "pwmchip" ist 7 Zeichen
+        const bool usable = n > channel;
+        if (usable && chosen < 0)
+            chosen = num;
+        qInfo().noquote() << QString("  %1: %2 Kanaele, %3%4")
+                                 .arg(c).arg(n)
+                                 .arg(target.isEmpty() ? QString("?") : QFileInfo(target).fileName())
+                                 .arg(usable && num == chosen ? "   <- gewaehlt" : "");
     }
-    return -1;
+    if (chips.isEmpty())
+        qWarning() << "Unter /sys/class/pwm liegt nichts. Fehlt der dtoverlay-Eintrag?";
+    return chosen;
 }
 
 LedPwm::LedPwm(int chip, int channel, int frequencyHz, QObject* parent)
@@ -42,14 +55,15 @@ LedPwm::LedPwm(int chip, int channel, int frequencyHz, QObject* parent)
     , m_frequencyHz(qBound(50, frequencyHz, 100000))
 {
     if (chip < 0) {
+        qInfo() << "Suche PWM-Chip:";
         chip = findChip(channel);
         if (chip < 0) {
-            qWarning() << "Keine PWM gefunden. In /boot/firmware/config.txt fehlt vermutlich"
-                       << "ein Eintrag wie 'dtoverlay=pwm,pin=18,func=2'."
-                       << "Die LED bleibt dunkel.";
+            qWarning().noquote()
+                << "Keine PWM gefunden. In /boot/firmware/config.txt fehlt vermutlich ein\n"
+                   "         Eintrag, auf dem Pi 5 z.B. 'dtoverlay=pwm-pio,gpio=12'.\n"
+                   "         Die LED bleibt dunkel.";
             return;
         }
-        qInfo() << "PWM-Chip automatisch gewaehlt: pwmchip" << chip;
     }
     if (!setup(chip, channel))
         m_dir.clear();
