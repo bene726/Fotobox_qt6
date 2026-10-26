@@ -17,6 +17,7 @@
 #endif
 
 #include <QDebug>
+#include <QStandardPaths>
 
 static QString resolve(const QString& value, const char* piDefault, const char* hostDefault)
 {
@@ -34,6 +35,14 @@ static QString resolve(const QString& value, const char* piDefault, const char* 
 LiveViewCamera* createLiveViewCamera(const Config& cfg, QObject* parent)
 {
     QString b = resolve(cfg.liveViewBackend, "rpicam", "qt");
+
+    // Bei "auto" auf die Webcam ausweichen, wenn rpicam-vid gar nicht da ist
+    // (rpicam-apps ist nur empfohlen, nicht zwingend installiert).
+    if (cfg.liveViewBackend == "auto" && b == "rpicam"
+        && QStandardPaths::findExecutable(cfg.rpicamBinary).isEmpty()) {
+        qInfo() << cfg.rpicamBinary << "nicht gefunden - versuche die Webcam.";
+        b = "qt";
+    }
 
 #ifdef FOTOBOX_HAS_QTMULTIMEDIA
     if (b == "qt" && !LiveViewCameraQt::available()) {
@@ -53,7 +62,7 @@ LiveViewCamera* createLiveViewCamera(const Config& cfg, QObject* parent)
                                         cfg.liveViewHeight, cfg.liveViewFps, parent);
 #ifdef FOTOBOX_HAS_QTMULTIMEDIA
     if (b == "qt")
-        return new LiveViewCameraQt(parent);
+        return new LiveViewCameraQt(cfg.liveViewDevice, parent);
 #endif
     if (b != "dummy")
         qWarning() << "Unbekanntes Livebild-Backend" << b << "- nutze dummy";

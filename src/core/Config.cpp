@@ -96,6 +96,7 @@ Config Config::load(const QString& path)
     c.autoTriggerMs   = hw.value("autoTriggerMs").toInt(c.autoTriggerMs);
     c.gphoto2Binary   = hw.value("gphoto2Binary").toString(c.gphoto2Binary);
     c.rpicamBinary    = hw.value("rpicamBinary").toString(c.rpicamBinary);
+    c.liveViewDevice  = hw.value("liveViewDevice").toString(c.liveViewDevice);
     c.liveViewWidth   = hw.value("liveViewWidth").toInt(c.liveViewWidth);
     c.liveViewHeight  = hw.value("liveViewHeight").toInt(c.liveViewHeight);
     c.liveViewFps     = hw.value("liveViewFps").toInt(c.liveViewFps);

@@ -3,6 +3,7 @@
 
 #include "MainWindow.h"
 #include "core/Config.h"
+#include "hardware/CameraScan.h"
 #include "hardware/GpioScan.h"
 #include "ui/Theme.h"
 
@@ -19,6 +20,10 @@ int main(int argc, char* argv[])
         if (a == "--gpio-info" || a == "--gpio-watch") {
             QCoreApplication app(argc, argv);
             return GpioScan::run(a == "--gpio-watch");
+        }
+        if (a == "--list-cameras") {
+            QCoreApplication app(argc, argv);
+            return CameraScan::run();
         }
     }
 
@@ -41,10 +46,11 @@ int main(int argc, char* argv[])
     QCommandLineOption optTheme("theme", "Design: retro|neon|elegant|wedding-blush|wedding-green|pool", "id");
     QCommandLineOption optScreenshot("screenshot", "Nach 2 s ein Bild speichern und beenden", "datei");
     QCommandLineOption optShow("show", "Startzustand fuer Screenshots: liveview|settings|countdown", "zustand");
+    QCommandLineOption optListCameras("list-cameras", "Verfuegbare Kameras fuer das Livebild auflisten");
     QCommandLineOption optGpioInfo("gpio-info", "GPIO-Leitungen auflisten und beenden");
     QCommandLineOption optGpioWatch("gpio-watch", "GPIO-Leitungen beobachten (Pin des Tasters finden)");
     parser.addOptions({optConfig, optWindowed, optCamera, optLiveView, optTrigger, optTheme,
-                       optScreenshot, optShow, optGpioInfo, optGpioWatch});
+                       optScreenshot, optShow, optListCameras, optGpioInfo, optGpioWatch});
     parser.process(app);
 
     const QString cfgPath = parser.isSet(optConfig) ? parser.value(optConfig)

@@ -17,9 +17,11 @@
     "theme": "retro"
   },
   "Hardware": {
-    "camera": "auto",
-    "liveView": "auto",
+    "camera": "gphoto",
+    "liveView": "qt",
+    "liveViewDevice": "WEB CAM",
     "trigger": "auto",
+    "led": "auto",
     "gphoto2Binary": "gphoto2",
     "rpicamBinary": "rpicam-vid",
     "liveViewWidth": 1280,
@@ -27,12 +29,11 @@
     "liveViewFps": 30,
     "gpioChip": "auto",
     "gpioLine": 17,
-    "led": "auto",
+    "gpioPull": "up",
+    "gpioDebounceMs": 30,
     "ledBrightness": 50,
     "ledPwmChip": -1,
     "ledPwmChannel": 0,
-    "gpioPull": "up",
-    "gpioDebounceMs": 30,
     "ledPwmFrequency": 1000
   }
 }

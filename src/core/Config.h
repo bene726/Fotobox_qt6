@@ -31,6 +31,7 @@ struct Config
     int     autoTriggerMs   = 10000;    // nur fuer trigger = timer
     QString gphoto2Binary   = "gphoto2";
     QString rpicamBinary    = "rpicam-vid";
+    QString liveViewDevice;             // Teil des Kameranamens, leer = Standard
     int     liveViewWidth   = 1280;
     int     liveViewHeight  = 720;
     int     liveViewFps     = 30;

@@ -5,6 +5,28 @@
 #include <QDir>
 #include <QFile>
 
+namespace {
+// gphoto2 meldet technisch. Die haeufigen Faelle werden in eine Anweisung
+// uebersetzt, die auf dem Display der Fotobox weiterhilft.
+QString friendlyError(const QString& raw)
+{
+    const QString r = raw.toLower();
+    if (r.contains("could not claim") || r.contains("device busy"))
+        return QString::fromUtf8("Kamera ist von einem anderen Programm belegt. "
+                                 "Auf dem Pi: gvfs-gphoto2 beenden.");
+    if (r.contains("could not detect any camera") || r.contains("no camera found"))
+        return QString::fromUtf8("Keine Kamera gefunden. USB-Kabel prüfen und Kamera einschalten.");
+    if (r.contains("out of focus"))
+        return QString::fromUtf8("Autofokus hat nicht ausgelöst. Mehr Licht, "
+                                 "oder Objektiv auf manuellen Fokus stellen.");
+    if (r.contains("no space") || r.contains("store_full") || r.contains("card full"))
+        return QString::fromUtf8("Speicherkarte der Kamera ist voll.");
+    if (r.contains("timeout") || r.contains("i/o error"))
+        return QString::fromUtf8("Verbindung zur Kamera gestört. Kabel prüfen.");
+    return raw;
+}
+}
+
 CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
     : Camera(parent)
     , m_binary(binary)
@@ -44,8 +66,8 @@ void CameraGPhoto::fail(const QString& msg)
     if (!m_busy)
         return;
     m_busy = false;
-    qWarning() << "gphoto2:" << msg;
-    emit captureFailed(msg);
+    qWarning() << "gphoto2:" << msg;          // Originalmeldung ins Log
+    emit captureFailed(friendlyError(msg));   // verstaendlicher Text aufs Display
 }
 
 void CameraGPhoto::onError(QProcess::ProcessError error)

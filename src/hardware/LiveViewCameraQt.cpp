@@ -18,9 +18,28 @@ bool LiveViewCameraQt::available()
     return !QMediaDevices::videoInputs().isEmpty();
 }
 
-LiveViewCameraQt::LiveViewCameraQt(QObject* parent)
+LiveViewCameraQt::LiveViewCameraQt(const QString& device, QObject* parent)
     : LiveViewCamera(parent)
 {
+    // Die Kamera gleich hier waehlen, damit die Entscheidung auch dann im Log
+    // steht, wenn das Starten spaeter an einer Berechtigung scheitert.
+    m_dev = QMediaDevices::defaultVideoInput();
+    if (!device.isEmpty()) {
+        bool found = false;
+        for (const QCameraDevice& c : QMediaDevices::videoInputs()) {
+            if (c.description().contains(device, Qt::CaseInsensitive)
+                || QString::fromUtf8(c.id()).contains(device, Qt::CaseInsensitive)) {
+                m_dev = c;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            qWarning() << "Keine Kamera passt zu" << device
+                       << "- nutze die Standardkamera. Liste mit --list-cameras.";
+    }
+    qInfo() << "Qt-Kamera:" << m_dev.description();
+
     m_session.setVideoSink(&m_sink);
     connect(&m_sink, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame& frame) {
         if (!frame.isValid())
@@ -41,9 +60,7 @@ LiveViewCameraQt::~LiveViewCameraQt()
 void LiveViewCameraQt::startCamera()
 {
     if (!m_camera) {
-        const QCameraDevice dev = QMediaDevices::defaultVideoInput();
-        qInfo() << "Qt-Kamera:" << dev.description();
-        m_camera = new QCamera(dev, this);
+        m_camera = new QCamera(m_dev, this);
         m_session.setCamera(m_camera);
         connect(m_camera, &QCamera::errorOccurred, this,
                 [](QCamera::Error, const QString& msg) {

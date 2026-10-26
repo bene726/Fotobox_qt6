@@ -26,7 +26,7 @@ Die Fotobox kombiniert:
 
 ## ✨ Features
 
-- Permanentes **Livebild** (Raspberry Pi Kamera)
+- Permanentes **Livebild** (USB-Webcam oder Raspberry-Pi-Kamera)
 - **Slideshow** im Idle-Zustand
 - **Touch auf dem Display**
   - beendet die Slideshow
@@ -46,14 +46,47 @@ Die Fotobox kombiniert:
 
 ### 📷 Kameras
 
-**LiveViewCamera**
-- Raspberry Pi Kamera (CSI)
-- liefert kontinuierliche Frames
-- läuft **immer**
+Zwei getrennte Kameras mit klaren Aufgaben.
 
-**Camera**
-- DSLR über `gphoto2`
-- macht **genau ein Foto**
+**LiveViewCamera** – liefert dauerhaft Frames, läuft **immer**:
+
+| Backend | Quelle | Wann |
+|---|---|---|
+| `qt` | USB-Webcam über V4L2 | Standard für eine Webcam, auch am Mac |
+| `rpicam` | Raspberry-Pi-Kamera am CSI-Anschluss | wenn eine Pi-Kamera verbaut ist |
+| `dummy` | Testbild | ohne Hardware |
+
+Welche Webcams erkannt werden, zeigt `fotobox --list-cameras`. Sind mehrere
+angeschlossen, wählt `"liveViewDevice"` die richtige über einen Teil des Namens.
+
+**Camera** – macht **genau ein Foto** pro Auslösung:
+
+| Backend | Quelle |
+|---|---|
+| `gphoto` | Spiegelreflex über `gphoto2`, z. B. Canon EOS 600D |
+| `snapshot` | aktuelles Livebild als Foto, ohne DSLR |
+| `dummy` | Testbild |
+
+> Eine Spiegelreflex im PTP-Modus ist **keine** Videoquelle. Sie taucht deshalb
+> nicht bei `--list-cameras` auf, sondern wird nur über `gphoto2` angesprochen.
+
+#### Spiegelreflex am Raspberry Pi
+
+Auf einem Desktop-System greift `gvfs` ungefragt auf angeschlossene Kameras zu
+und blockiert damit `gphoto2`. Die Fotobox meldet das als „Kamera ist von einem
+anderen Programm belegt". Dauerhaft abstellen:
+
+```bash
+systemctl --user mask gvfs-gphoto2-volume-monitor
+systemctl --user stop gvfs-gphoto2-volume-monitor
+```
+
+Verbindung testen:
+
+```bash
+gphoto2 --auto-detect
+gphoto2 --capture-image-and-download --filename /tmp/test.jpg
+```
 
 ---
 
@@ -63,8 +96,8 @@ Die Fotobox kombiniert:
 - erkennt Touch auf dem Display
 - beendet nur die Slideshow
 
-**TriggerThread**
-- physischer GPIO-Button
+**Trigger**
+- physischer Taster am GPIO, siehe [GPIO.md](GPIO.md)
 - startet Countdown + Foto
 
 ---
@@ -138,6 +171,7 @@ Nützliche Optionen:
 | `--trigger keyboard\|gpio\|timer` | Auslöser erzwingen |
 | `--theme <id>` | Design erzwingen (retro, neon, elegant, wedding-blush, wedding-green, pool) |
 | `--screenshot <datei> --show settings` | Bild rendern und beenden (für Tests) |
+| `--list-cameras` | erkannte Webcams für das Livebild auflisten |
 | `--gpio-info` | GPIO-Leitungen auflisten (Pi) |
 | `--gpio-watch` | Taster-Pin ermitteln: drücken und ablesen (Pi) |
 
@@ -292,7 +326,8 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 | Behaviour | showQr, qrSize | QR-Code ein/aus und Kantenlänge |
 | Behaviour | theme | Design-ID, siehe Abschnitt Designs |
 | Hardware | led, ledBrightness | LED-Backend und Helligkeit in Prozent |
-| Hardware | camera, liveView, trigger | `auto` oder ein konkretes Backend (`camera`: dummy, snapshot, gphoto; `liveView`: dummy, qt, rpicam) |
+| Hardware | camera, liveView, trigger, led | `auto` oder ein konkretes Backend, siehe Abschnitt Kameras |
+| Hardware | liveViewDevice | Teil des Kameranamens, wenn mehrere Webcams angeschlossen sind |
 | Hardware | gphoto2Binary, rpicamBinary | Programmnamen/Pfade |
 | Hardware | liveViewWidth/Height/Fps | Auflösung des Livebilds |
 | Hardware | gpioChip, gpioLine, gpioPull, gpioDebounceMs | Taster am Pi, Details in [GPIO.md](GPIO.md) |

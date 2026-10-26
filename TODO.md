@@ -5,7 +5,7 @@
 - [x] Countdown konfigurierbar machen
 - [x] Case-insensitive Dateifilter (JPG / PNG)
 - [x] QR-Code optional ein-/ausblendbar
-- [ ] gphoto2-Aufnahme am Mac mit echter DSLR testen
+- [ ] gphoto2-Aufnahme mit der Canon EOS 600D testen
 - [ ] Schriften (OFL) in `fonts/` ablegen, damit die Designs am Pi wie geplant aussehen
 - [x] LED-PWM implementiert (sysfs)
 - [ ] Taster und LED auf dem Pi 5 testen
@@ -13,7 +13,8 @@
 ---
 
 ## Mittelfristig
-- [ ] rpicam-vid LiveView auf dem Pi testen (Code vorhanden, ungetestet)
+- [ ] Livebild der USB-Webcam auf dem Pi testen
+- [ ] rpicam-vid LiveView ist vorhanden, aber ungetestet (nur nötig mit Pi-Kamera)
 - [x] GPIO-Taster implementiert (Kernel-uAPI v2, kein libgpiod nötig)
 - [ ] Bildschirmtastatur (Qt Virtual Keyboard) auf dem Pi
 - [ ] LED heller schalten während des Countdowns

@@ -2,6 +2,7 @@
 #include "LiveViewCamera.h"
 
 #include <QCamera>
+#include <QCameraDevice>
 #include <QMediaCaptureSession>
 #include <QVideoSink>
 
@@ -10,7 +11,8 @@ class LiveViewCameraQt : public LiveViewCamera
 {
     Q_OBJECT
 public:
-    explicit LiveViewCameraQt(QObject* parent = nullptr);
+    // device: Teil des Namens oder der Kennung; leer = Standardkamera
+    explicit LiveViewCameraQt(const QString& device = {}, QObject* parent = nullptr);
     ~LiveViewCameraQt() override;
 
     static bool available();
@@ -20,6 +22,8 @@ public:
 
 private:
     void startCamera();
+
+    QCameraDevice m_dev;   // beim Start ausgewaehlt
 
     QCamera* m_camera = nullptr;
     QMediaCaptureSession m_session;
