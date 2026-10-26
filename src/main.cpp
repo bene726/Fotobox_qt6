@@ -33,7 +33,7 @@ struct Cli
     QCommandLineOption theme{"theme",
                              "Design: retro|neon|elegant|wedding-blush|wedding-green|pool", "id"};
     QCommandLineOption screenshot{"screenshot", "Nach 2 s ein Bild speichern und beenden", "datei"};
-    QCommandLineOption show{"show", "Startzustand fuer Screenshots: liveview|settings|countdown",
+    QCommandLineOption show{"show", "Startzustand fuer Screenshots: liveview|settings|countdown|shutdown",
                             "zustand"};
     QCommandLineOption listCameras{"list-cameras", "Verfuegbare Kameras fuer das Livebild auflisten"};
     QCommandLineOption testCamera{"test-camera", "Livebild testen: kommen Bilder an?"};

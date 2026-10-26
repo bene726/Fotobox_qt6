@@ -406,6 +406,13 @@ void MainWindow::showDemoState(const QString& which)
 {
     if (which == "settings") {
         openSettings();
+    } else if (which == "shutdown") {
+        // Nur ein einziges Antippen: das zweite wuerde wirklich herunterfahren.
+        openSettings();
+        QTimer::singleShot(300, this, [this] {
+            if (auto* b = settingsPanel->findChild<QPushButton*>("danger"))
+                b->click();
+        });
     } else if (which == "dropdown") {
         openSettings();
         QTimer::singleShot(300, settingsPanel, &SettingsPanel::openThemeDropdown);
