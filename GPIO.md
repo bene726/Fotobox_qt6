@@ -42,8 +42,8 @@ die steigende Flanke.
 ### Implementierung
 - Klasse `TriggerGpio`
 - Spricht `/dev/gpiochipN` direkt über die Kernel-Schnittstelle **uAPI v2** an
-- Dadurch keine Abhängigkeit zu `libgpiod`, dessen API sich zwischen
-  Version 1 (Bookworm) und 2 (Trixie) unterscheidet
+- Dadurch keine Abhängigkeit zu `libgpiod`, dessen API sich zwischen Version 1 und 2
+  grundlegend unterscheidet
 - Entprellt bevorzugt **im Kernel**; kann der Treiber das nicht, übernimmt es die Anwendung
 - Läuft ereignisgesteuert über den Qt-Eventloop, kein eigener Thread, kein Polling
 

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Fotobox Apt-Repository</title>
+<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 16px;line-height:1.5}
+pre{background:#f4f4f4;padding:12px;overflow:auto}</style></head><body>
+<h1>Fotobox Apt-Repository</h1>
+<p>Pakete fuer Raspberry Pi OS (arm64). Distributionen: trixie. Komponenten: <code>main</code> (Releases), <code>nightly</code>.</p>
+<h2>Einrichten auf dem Pi</h2>
+<pre>sudo mkdir -p /etc/apt/keyrings
+# Repo ist nicht signiert, daher trusted=yes
+. /etc/os-release
+echo "deb [arch=arm64 trusted=yes] https://bene726.github.io/Fotobox_qt6 $VERSION_CODENAME main nightly" | sudo tee /etc/apt/sources.list.d/fotobox.list
+sudo apt update &amp;&amp; sudo apt install fotobox</pre>
+<p><strong>Hinweis:</strong> Es gibt noch kein Release, <code>main</code> ist daher leer. Die Zeile oben enthaelt deshalb auch <code>nightly</code>. Nach dem ersten Release genuegt <code>main</code>.</p>
+<h2>Pakete</h2><ul><li>noch keine</li></ul>
+<p>Erzeugt am 2026-10-26 11:04 UTC.</p>
+</body></html>

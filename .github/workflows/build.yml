@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 env:
-  DISTS: bookworm trixie
+  DISTS: trixie
 
 jobs:
   # ------------------------------------------------------------ Version aus Git
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dist: [bookworm, trixie]
+        dist: [trixie]
     container:
       image: debian:${{ matrix.dist }}
     steps:
@@ -198,7 +198,7 @@ jobs:
           for d in $DISTS; do
             python3 scripts/apt_repo.py add --repo site --dist "$d" --component "$CHANNEL" debs/deb-$d/*.deb
           done
-          python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 \
+          python3 scripts/apt_repo.py generate --repo site --dists $DISTS --keep-nightly 5 --prune-dists \
             --base-url "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
       - name: Repo pruefen
         run: |

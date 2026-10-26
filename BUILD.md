@@ -56,7 +56,7 @@ Alternativ das Projekt in Qt Creator über `CMakeLists.txt` öffnen.
 
 ---
 
-## Build auf Raspberry Pi
+## Build auf Raspberry Pi (Trixie, 64-bit)
 
 ### Zusätzliche Abhängigkeiten
 ```bash

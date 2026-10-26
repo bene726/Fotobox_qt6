@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-DIST_NAMES = {"bookworm": ("Bookworm", "12"), "trixie": ("Trixie", "13")}
+DIST_NAMES = {"trixie": ("Trixie", "13")}
 
 
 def git(*args, default=None):
@@ -45,7 +45,8 @@ def commits(prev: str | None, ref: str) -> list:
 
 
 def dist_of(name: str) -> str | None:
-    m = re.search(r"_(bookworm|trixie)\.deb$", name)
+    # Gegen die bekannten Namen pruefen: "\w" wuerde auch "arm64_trixie" fangen.
+    m = re.search(r"_(" + "|".join(DIST_NAMES) + r")\.deb$", name)
     return m.group(1) if m else None
 
 
@@ -122,9 +123,12 @@ def main() -> int:
             d = dist_of(f.name)
             label = f"{DIST_NAMES[d][0]} ({DIST_NAMES[d][1]})" if d in DIST_NAMES else "unbekannt"
             out.append(f"| `{f.name}` | {label} | {f.stat().st_size // 1024} KB |")
+        plural = len(files) > 1
         out += [
             "",
-            "Beide Pakete sind `arm64` und laufen auf Raspberry Pi 4 und 5.",
+            ("Die Pakete sind" if plural else "Das Paket ist")
+            + " `arm64` und " + ("laufen" if plural else "läuft")
+            + " auf Raspberry Pi 4 und 5 mit 64-bit-System.",
             "Die Prüfsummen stehen in `SHA256SUMS`.",
             "",
             "<details><summary>SHA256</summary>",

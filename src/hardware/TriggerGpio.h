@@ -9,7 +9,7 @@ class QSocketNotifier;
 //
 // Spricht die Zeichengeraete-Schnittstelle des Kernels direkt an
 // (/dev/gpiochipN, uAPI v2). Das vermeidet eine Abhaengigkeit zu libgpiod,
-// dessen API sich zwischen Version 1 (Bookworm) und 2 (Trixie) unterscheidet.
+// dessen API sich zwischen Version 1 und 2 grundlegend unterscheidet.
 //
 // Verdrahtung: Taster zwischen GPIO und GND, interner Pull-up aktiv
 // (pull = "up", Standard). Alternativ Taster gegen 3,3 V mit pull = "down".

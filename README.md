@@ -188,7 +188,7 @@ ninja -C build
 
 ## 📦 Installation auf dem Raspberry Pi (apt)
 
-Fertige Pakete für **Raspberry Pi OS 64-bit** (Bookworm und Trixie, Pi 4 und Pi 5) liegen in einem
+Fertige Pakete für **Raspberry Pi OS 13 (Trixie), 64-bit** liegen in einem
 Apt-Repository auf GitHub Pages: <https://bene726.github.io/Fotobox_qt6/>
 
 ```bash

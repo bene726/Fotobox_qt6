@@ -10,7 +10,7 @@ Layout des Repos (Wurzel = GitHub-Pages-Site):
 
 Befehle:
   add       --repo DIR --dist trixie --component nightly PAKET.deb ...
-  generate  --repo DIR [--dists bookworm trixie] [--keep-nightly 5] [--gpg-key ID] [--base-url URL]
+  generate  --repo DIR [--dists trixie] [--keep-nightly 5] [--prune-dists] [--gpg-key ID] [--base-url URL]
 """
 import argparse
 import gzip
@@ -311,7 +311,13 @@ def cmd_generate(args) -> int:
     pool.mkdir(parents=True, exist_ok=True)
     prune_nightlies(pool, args.keep_nightly)
 
-    dists = sorted(set(args.dists or []) | {p.name for p in pool.glob("*") if p.is_dir()})
+    if args.prune_dists and args.dists:
+        for d in sorted(p for p in pool.glob("*") if p.is_dir() and p.name not in args.dists):
+            shutil.rmtree(d)
+            print(f"entfernt (nicht mehr unterstuetzt): {d}")
+        dists = sorted(args.dists)
+    else:
+        dists = sorted(set(args.dists or []) | {p.name for p in pool.glob("*") if p.is_dir()})
     if not dists:
         print("keine Distributionen im Pool und keine per --dists angegeben", file=sys.stderr)
         return 1
@@ -357,6 +363,8 @@ def main() -> int:
     g.add_argument("--repo", required=True)
     g.add_argument("--dists", nargs="*", help="Distributionen, die immer angelegt werden")
     g.add_argument("--keep-nightly", type=int, default=5)
+    g.add_argument("--prune-dists", action="store_true",
+                   help="Distributionen aus dem Pool entfernen, die nicht in --dists stehen")
     g.add_argument("--gpg-key", default="", help="GPG-Key-ID zum Signieren (oder $APT_GPG_KEY_ID)")
     g.add_argument("--base-url", default="https://bene726.github.io/Fotobox_qt6")
     g.set_defaults(func=cmd_generate)

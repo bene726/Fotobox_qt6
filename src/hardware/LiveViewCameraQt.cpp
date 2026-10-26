@@ -5,7 +5,7 @@
 #include <QMediaDevices>
 #include <QVideoFrame>
 
-// QPermissions gibt es erst ab Qt 6.5 (Raspberry Pi OS Bookworm hat 6.4).
+// QPermissions gibt es erst ab Qt 6.5.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #if QT_CONFIG(permissions)
 #define FOTOBOX_HAS_PERMISSIONS 1
