@@ -10,6 +10,8 @@ class QSlider;
 class QLabel;
 class QCheckBox;
 class QComboBox;
+class QPushButton;
+class QTimer;
 
 // Einstellungs-Overlay fuer den Touchscreen.
 // Aenderungen werden sofort per Signal gemeldet, "Speichern" schreibt die config.json.
@@ -26,6 +28,7 @@ public:
     void setConfig(const Config& cfg);
     void applyTheme(const Theme& theme);
     void openThemeDropdown();   // fuer Screenshots
+    void resetShutdownButton(); // Bestaetigung zuruecknehmen, z.B. beim Schliessen
 
 signals:
     void themeChanged(const QString& id);
@@ -36,6 +39,7 @@ signals:
     void showQrChanged(bool show);
     void saveRequested();
     void closeRequested();
+    void shutdownRequested();   // zweites Antippen von "Ausschalten"
 
 private:
     QWidget* makeRow(const QString& title, QWidget* control, QLabel* value = nullptr);
@@ -50,4 +54,6 @@ private:
     QSlider* m_photo = nullptr;
     QLabel* m_photoValue = nullptr;
     QCheckBox* m_showQr = nullptr;
+    QPushButton* m_shutdown = nullptr;
+    QTimer* m_shutdownArm = nullptr;   // Bestaetigung laeuft nach ein paar Sekunden ab
 };

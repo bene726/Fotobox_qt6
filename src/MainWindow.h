@@ -80,6 +80,7 @@ private:
     void openSettings();
     void closeSettings();
     void saveSettings();
+    void shutdownSystem();
 
     void showOverlayImage(const QPixmap& pix);
     void showMessage(const QString& text, int ms = 3000);

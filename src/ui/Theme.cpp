@@ -155,6 +155,7 @@ QString Theme::settingsStyle() const
         "QPushButton { color: %16; background-color: %17; border: %2px solid %18; border-radius: %4px;"
         "  padding: 12px 26px; font-family: \"%20\"; font-size: 17px; %8 }"
         "QPushButton#primary { color: %15; background-color: %9; border-color: %3; }"
+        "QPushButton#danger { color: #ffffff; background-color: #b3261e; border-color: #b3261e; }"
         "QPushButton:pressed { background-color: %11; }")
         .arg(rgba(panel)).arg(panelBorderWidth).arg(rgba(panelBorder)).arg(radius)
         .arg(rgba(text), bodyFamily(), displayFamily(), title)

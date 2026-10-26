@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSlider>
+#include <QTimer>
 #include <QAbstractItemView>
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
@@ -47,7 +48,19 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     save->setObjectName("primary");
     auto* close = new QPushButton(QString::fromUtf8("Schließen"), this);
 
+    // Ausschalten nur in der Pi-Version: am Entwicklungsrechner wuerde der
+    // Button sonst den eigenen Rechner herunterfahren.
+    m_shutdown = new QPushButton("Ausschalten", this);
+    m_shutdown->setObjectName("danger");
+    m_shutdownArm = new QTimer(this);
+    m_shutdownArm->setSingleShot(true);
+    m_shutdownArm->setInterval(4000);
+#ifndef FOTOBOX_PI
+    m_shutdown->hide();
+#endif
+
     auto* buttons = new QHBoxLayout;
+    buttons->addWidget(m_shutdown);
     buttons->addStretch();
     buttons->addWidget(close);
     buttons->addWidget(save);
@@ -89,6 +102,21 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     connect(m_showQr, &QCheckBox::toggled, this, &SettingsPanel::showQrChanged);
     connect(save, &QPushButton::clicked, this, &SettingsPanel::saveRequested);
     connect(close, &QPushButton::clicked, this, &SettingsPanel::closeRequested);
+
+    // Zweistufig, damit ein versehentliches Antippen nichts ausloest:
+    // erstes Antippen fragt nach, zweites innerhalb von 4 s faehrt herunter.
+    connect(m_shutdown, &QPushButton::clicked, this, [this] {
+        if (m_shutdownArm->isActive()) {
+            m_shutdownArm->stop();
+            m_shutdown->setText(QString::fromUtf8("Fährt herunter …"));
+            m_shutdown->setEnabled(false);
+            emit shutdownRequested();
+            return;
+        }
+        m_shutdown->setText("Wirklich ausschalten?");
+        m_shutdownArm->start();
+    });
+    connect(m_shutdownArm, &QTimer::timeout, this, &SettingsPanel::resetShutdownButton);
 
     setConfig(cfg);
 }
@@ -190,4 +218,11 @@ void SettingsPanel::setConfig(const Config& cfg)
         QSignalBlocker b(m_showQr);
         m_showQr->setChecked(cfg.showQr);
     }
+}
+
+void SettingsPanel::resetShutdownButton()
+{
+    m_shutdownArm->stop();
+    m_shutdown->setText("Ausschalten");
+    m_shutdown->setEnabled(true);
 }

@@ -88,6 +88,11 @@ include(GNUInstallDirs)
 install(TARGETS fotobox RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES packaging/fotobox.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES Config.example.json README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
+# Erlaubt der Gruppe fotobox das Ausschalten ueber den Button in den Einstellungen
+if(FOTOBOX_PI)
+    install(FILES packaging/50-fotobox-power.rules
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/rules.d)
+endif()
 # Optionale Schriften fuer die Designs (Ordner fonts/ im Quellbaum)
 install(DIRECTORY fonts/ DESTINATION ${CMAKE_INSTALL_DATADIR}/fotobox/fonts OPTIONAL)
 

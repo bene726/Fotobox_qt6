@@ -15,6 +15,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QResizeEvent>
+#include <QProcess>
 #include <QPushButton>
 #include <QToolButton>
 
@@ -112,6 +113,7 @@ void MainWindow::setupUi()
     });
     connect(settingsPanel, &SettingsPanel::saveRequested, this, &MainWindow::saveSettings);
     connect(settingsPanel, &SettingsPanel::closeRequested, this, &MainWindow::closeSettings);
+    connect(settingsPanel, &SettingsPanel::shutdownRequested, this, &MainWindow::shutdownSystem);
 
     messageLabel = new QLabel(central);
     messageLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -435,6 +437,7 @@ void MainWindow::openSettings()
 
 void MainWindow::closeSettings()
 {
+    settingsPanel->resetShutdownButton();
     settingsPanel->hide();
     settingsShadow->hide();
     enterLiveView();
@@ -447,6 +450,35 @@ void MainWindow::saveSettings()
     else
         showMessage("Speichern fehlgeschlagen: " + cfg.sourcePath, 5000);
     closeSettings();
+}
+
+void MainWindow::shutdownSystem()
+{
+    // systemctl poweroff ueber logind. Aus dem systemd-Benutzerdienst heraus
+    // gibt es keine aktive Sitzung, daher erlaubt die polkit-Regel aus dem
+    // Paket (50-fotobox-power.rules) das Ausschalten fuer die Gruppe fotobox.
+    qInfo() << "Ausschalten angefordert";
+    showMessage(QString::fromUtf8("Fotobox wird ausgeschaltet …"), 60000);
+
+    auto* proc = new QProcess(this);
+    connect(proc, &QProcess::finished, this, [this, proc](int code, QProcess::ExitStatus status) {
+        if (status != QProcess::NormalExit || code != 0) {
+            const QString err = QString::fromLocal8Bit(proc->readAllStandardError()).trimmed();
+            qWarning() << "Ausschalten fehlgeschlagen:" << code << err;
+            showMessage("Ausschalten fehlgeschlagen: " + err, 8000);
+            settingsPanel->resetShutdownButton();
+        }
+        proc->deleteLater();
+    });
+    connect(proc, &QProcess::errorOccurred, this, [this, proc](QProcess::ProcessError e) {
+        if (e == QProcess::FailedToStart) {
+            qWarning() << "systemctl nicht startbar";
+            showMessage("Ausschalten fehlgeschlagen: systemctl fehlt", 8000);
+            settingsPanel->resetShutdownButton();
+            proc->deleteLater();
+        }
+    });
+    proc->start("systemctl", {"poweroff"});
 }
 
 // ---------------------------------------------------------------- Ereignisse

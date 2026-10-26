@@ -1,0 +1,17 @@
+// Fotobox: Ausschalten und Neustart ohne Passwort fuer die Gruppe "fotobox".
+//
+// Die Fotobox laeuft als systemd-Benutzerdienst. Prozesse darin gehoeren zu
+// keiner aktiven Sitzung, daher wuerde logind fuer "systemctl poweroff" sonst
+// ein Admin-Passwort verlangen. Andere Benutzer bei Bedarf mit
+//   sudo usermod -aG fotobox <benutzer>
+// hinzufuegen.
+polkit.addRule(function(action, subject) {
+    var allowed = [
+        "org.freedesktop.login1.power-off",
+        "org.freedesktop.login1.power-off-multiple-sessions",
+        "org.freedesktop.login1.reboot",
+        "org.freedesktop.login1.reboot-multiple-sessions"
+    ];
+    if (allowed.indexOf(action.id) >= 0 && subject.isInGroup("fotobox"))
+        return polkit.Result.YES;
+});
