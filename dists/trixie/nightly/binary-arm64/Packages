@@ -8,24 +8,6 @@ Package: fotobox
 Priority: optional
 Recommends: rpicam-apps, gpiod
 Section: graphics
-Version: 0.0.0+git202609191906.6.gcc8a1bd
-Installed-Size: 363
-Filename: pool/trixie/nightly/fotobox_0.0.0+git202609191906.6.gcc8a1bd_arm64.deb
-Size: 97328
-MD5sum: dbe3d0028333c574f9ed58721482bb58
-SHA1: 921e8644c17ec0f287e78f19e6680b80c27f47f9
-SHA256: 74d2ad704679bfb70051fbfffbc90a1186e73dbae59495a04b4e47f0b63469ac
-
-Architecture: arm64
-Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 5.2)
-Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
- Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
-Homepage: https://github.com/bene726/Fotobox_qt6
-Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
-Package: fotobox
-Priority: optional
-Recommends: rpicam-apps, gpiod
-Section: graphics
 Version: 0.0.0+git202609191911.7.gc9a7f51
 Installed-Size: 363
 Filename: pool/trixie/nightly/fotobox_0.0.0+git202609191911.7.gc9a7f51_arm64.deb
@@ -87,3 +69,21 @@ Size: 97306
 MD5sum: 48931732976f04990546b236b4d8abd3
 SHA1: cb7e4bb526ee8b30be03b393a7a9e46dcc56d4e2
 SHA256: e0614e2d7c3e10f786dbb4a4701606554e993e0c63a475d3126f24433a3f4b3b
+
+Architecture: arm64
+Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 14)
+Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
+ Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
+Homepage: https://github.com/bene726/Fotobox_qt6
+Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
+Package: fotobox
+Priority: optional
+Recommends: rpicam-apps, gpiod
+Section: graphics
+Version: 0.1.0+git202610261116.4.g0bc1a93
+Installed-Size: 365
+Filename: pool/trixie/nightly/fotobox_0.1.0+git202610261116.4.g0bc1a93_arm64_trixie.deb
+Size: 107658
+MD5sum: 5452278b87b7e2c01a8648cb2e5fa567
+SHA1: 912d09e80629a64119da65936a370f5b85f32d64
+SHA256: 07d29692a06ba3b41597c1b415c96ae1055f14cf80bbe372139bd84dc846f4c1
