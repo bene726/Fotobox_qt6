@@ -188,6 +188,20 @@ Great Vibes, Montserrat, Playfair Display, Fredoka, Nunito)
 werden aus einem Ordner `fonts/` neben dem Programm oder im Arbeitsverzeichnis geladen, wenn vorhanden.
 Fehlen sie, greifen Systemschriften.
 
+### Start auf dem Raspberry Pi
+
+Die Fotobox ist eine Anwendung mit Oberfläche und braucht einen Bildschirm.
+
+| Situation | Befehl |
+|---|---|
+| Auf dem Desktop des Pi | `fotobox` |
+| Über SSH | nur die Diagnose-Optionen, siehe Tabelle oben |
+| Ohne Desktop, direkt auf dem Display | `QT_QPA_PLATFORM=eglfs fotobox` |
+
+Über SSH gibt es keine Anzeige. Startet man dort die Oberfläche, meldet Qt
+`could not connect to display`. Die Optionen `--list-cameras`, `--gpio-info`,
+`--gpio-watch`, `--help` und `--version` laufen dagegen auch über SSH.
+
 Ohne Angabe wird die Konfiguration in dieser Reihenfolge gesucht:
 `$FOTOBOX_CONFIG`, `./config.json`, `~/.config/fotobox/config.json`.
 Fehlt sie, laufen Standardwerte mit dem Bildordner `~/Pictures/Fotobox/<Jahr>/Test_Event`.
