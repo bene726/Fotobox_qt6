@@ -22,8 +22,11 @@ bool gvfsGphotoRunning()
         QFile f("/proc/" + pid + "/comm");
         if (!f.open(QIODevice::ReadOnly))
             continue;
-        // /proc/PID/comm ist auf 15 Zeichen gekuerzt: "gvfs-gphoto2-vo"
-        if (QString::fromLocal8Bit(f.readAll()).trimmed().contains("gvfs-gphoto2"))
+        // Es gibt zwei Prozesse mit unterschiedlichen Namen: den Monitor
+        // "gvfs-gphoto2-volume-monitor" (in comm auf 15 Zeichen gekuerzt) und
+        // den Dienst "gvfsd-gphoto2". Deshalb beide Teile einzeln pruefen.
+        const QString comm = QString::fromLocal8Bit(f.readAll()).trimmed();
+        if (comm.contains("gvfs") && comm.contains("gphoto"))
             return true;
     }
     return false;
@@ -75,11 +78,11 @@ CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
 #ifdef __linux__
     if (gvfsGphotoRunning()) {
         qWarning().noquote()
-            << "ACHTUNG: gvfs-gphoto2 laeuft und belegt die Kamera. Das erste Foto wird\n"
-               "         fehlschlagen. Dauerhaft abstellen mit:\n"
+            << "ACHTUNG: gvfs belegt die Kamera. Das erste Foto wird fehlschlagen.\n"
+               "         Dauerhaft abstellen mit:\n"
                "           systemctl --user mask gvfs-gphoto2-volume-monitor.service\n"
                "           systemctl --user stop gvfs-gphoto2-volume-monitor.service\n"
-               "           pkill -f gvfs-gphoto2";
+               "           pkill -f 'gvfsd?-gphoto2'";
     }
 #endif
 }

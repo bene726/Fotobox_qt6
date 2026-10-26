@@ -77,10 +77,19 @@ und blockiert damit `gphoto2`. Der Fehler lautet dann „Konnte das USB-Gerät n
 beanspruchen" bzw. `Could not claim the USB device` (Code −53). Dauerhaft abstellen:
 
 ```bash
-systemctl --user mask gvfs-gphoto2-volume-monitor.service && systemctl --user stop gvfs-gphoto2-volume-monitor.service && pkill -f gvfs-gphoto2
+systemctl --user mask gvfs-gphoto2-volume-monitor.service && systemctl --user stop gvfs-gphoto2-volume-monitor.service && pkill -f 'gvfsd?-gphoto2'
 ```
 
-Die Fotobox warnt beim Start, wenn `gvfs-gphoto2` läuft, und zeigt im Fehlerfall
+> Es gibt **zwei** Prozesse: den Monitor `gvfs-gphoto2-volume-monitor` und den
+> Dienst `gvfsd-gphoto2`. Ein Muster ohne das `d` erwischt nur einen davon.
+
+Hält die Kamera danach immer noch jemand fest, zeigt das folgender Befehl:
+
+```bash
+sudo fuser -v /dev/bus/usb/001/002   # Busnummern aus "gphoto2 --auto-detect"
+```
+
+Die Fotobox warnt beim Start, wenn gvfs läuft, und zeigt im Fehlerfall
 „Kamera ist von einem anderen Programm belegt" statt der technischen Meldung.
 
 Verbindung testen:
