@@ -37,6 +37,8 @@ signals:
     void countdownSecondsChanged(int seconds);
     void photoDisplayMsChanged(int ms);
     void showQrChanged(bool show);
+    void slideshowEnabledChanged(bool on);
+    void slideshowDelayChanged(int ms);
     void saveRequested();
     void closeRequested();
     void shutdownRequested();   // zweites Antippen von "Ausschalten"
@@ -54,6 +56,10 @@ private:
     QSlider* m_photo = nullptr;
     QLabel* m_photoValue = nullptr;
     QCheckBox* m_showQr = nullptr;
+    QCheckBox* m_slideshow = nullptr;
+    QSlider* m_slideshowDelay = nullptr;
+    QLabel* m_slideshowDelayValue = nullptr;
+    QWidget* m_slideshowDelayRow = nullptr;
     QPushButton* m_shutdown = nullptr;
     QTimer* m_shutdownArm = nullptr;   // Bestaetigung laeuft nach ein paar Sekunden ab
 };

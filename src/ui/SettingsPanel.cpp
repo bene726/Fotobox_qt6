@@ -42,7 +42,12 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     m_photo->setRange(1, 15);
     m_photoValue = new QLabel(this);
 
-    m_showQr = new QCheckBox("QR-Code anzeigen", this);
+    m_showQr = new QCheckBox("QR-Code", this);
+
+    m_slideshow = new QCheckBox("Diashow", this);
+    m_slideshowDelay = new QSlider(Qt::Horizontal, this);
+    m_slideshowDelay->setRange(1, 15);          // Minuten
+    m_slideshowDelayValue = new QLabel(this);
 
     auto* save = new QPushButton("Speichern", this);
     save->setObjectName("primary");
@@ -67,7 +72,7 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
 
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(32, 26, 32, 26);
-    layout->setSpacing(14);
+    layout->setSpacing(12);
     layout->addWidget(title);
     layout->addWidget(makeRow("Design", m_theme));
     m_cameraRow = makeRow("Kamera", m_camera);
@@ -76,7 +81,19 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     layout->addWidget(makeRow("LED-Helligkeit", m_led, m_ledValue));
     layout->addWidget(makeRow("Countdown", m_countdown, m_countdownValue));
     layout->addWidget(makeRow("Foto anzeigen", m_photo, m_photoValue));
-    layout->addWidget(m_showQr);
+    m_slideshowDelayRow = makeRow("Diashow nach", m_slideshowDelay, m_slideshowDelayValue);
+    layout->addWidget(m_slideshowDelayRow);
+
+    // Beide Schalter nebeneinander, damit das Fenster nicht zu hoch wird.
+    auto* schalter = new QWidget(this);
+    schalter->setStyleSheet("background: transparent;");
+    auto* sl = new QHBoxLayout(schalter);
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->setSpacing(32);
+    sl->addWidget(m_slideshow);
+    sl->addWidget(m_showQr);
+    sl->addStretch();
+    layout->addWidget(schalter);
     layout->addStretch();
     layout->addLayout(buttons);
 
@@ -100,6 +117,14 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
         emit photoDisplayMsChanged(v * 1000);
     });
     connect(m_showQr, &QCheckBox::toggled, this, &SettingsPanel::showQrChanged);
+    connect(m_slideshow, &QCheckBox::toggled, this, [this](bool on) {
+        m_slideshowDelayRow->setEnabled(on);   // ohne Diashow gibt es nichts zu warten
+        emit slideshowEnabledChanged(on);
+    });
+    connect(m_slideshowDelay, &QSlider::valueChanged, this, [this](int min) {
+        m_slideshowDelayValue->setText(QString::number(min) + " min");
+        emit slideshowDelayChanged(min * 60 * 1000);
+    });
     connect(save, &QPushButton::clicked, this, &SettingsPanel::saveRequested);
     connect(close, &QPushButton::clicked, this, &SettingsPanel::closeRequested);
 
@@ -217,6 +242,17 @@ void SettingsPanel::setConfig(const Config& cfg)
     {
         QSignalBlocker b(m_showQr);
         m_showQr->setChecked(cfg.showQr);
+    }
+    {
+        QSignalBlocker b(m_slideshow);
+        m_slideshow->setChecked(cfg.slideshowEnabled);
+        m_slideshowDelayRow->setEnabled(cfg.slideshowEnabled);
+    }
+    {
+        QSignalBlocker b(m_slideshowDelay);
+        const int min = qBound(1, cfg.liveViewTimeoutMs / 60000, 15);
+        m_slideshowDelay->setValue(min);
+        m_slideshowDelayValue->setText(QString::number(min) + " min");
     }
 }
 

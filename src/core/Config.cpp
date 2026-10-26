@@ -102,6 +102,7 @@ bool Config::applyFile(const QString& path, bool allowPaths)
     c.slideshowIntervalMs = beh.value("slideshowIntervalMs").toInt(c.slideshowIntervalMs);
     c.photoDisplayMs      = beh.value("photoDisplayMs").toInt(c.photoDisplayMs);
     c.liveViewTimeoutMs   = beh.value("liveViewTimeoutMs").toInt(c.liveViewTimeoutMs);
+    c.slideshowEnabled    = beh.value("slideshowEnabled").toBool(c.slideshowEnabled);
     c.showQr              = beh.value("showQr").toBool(c.showQr);
     c.qrSize              = beh.value("qrSize").toInt(c.qrSize);
     c.theme               = beh.value("theme").toString(c.theme);
@@ -217,6 +218,7 @@ bool Config::save()
     beh["slideshowIntervalMs"] = slideshowIntervalMs;
     beh["photoDisplayMs"]      = photoDisplayMs;
     beh["liveViewTimeoutMs"]   = liveViewTimeoutMs;
+    beh["slideshowEnabled"]    = slideshowEnabled;
     beh["showQr"]              = showQr;
     beh["qrSize"]              = qrSize;
     beh["theme"]               = theme;
@@ -248,6 +250,7 @@ QJsonObject Config::toJson() const
     QJsonObject beh{
         {"countdownSeconds", countdownSeconds}, {"slideshowIntervalMs", slideshowIntervalMs},
         {"photoDisplayMs", photoDisplayMs}, {"liveViewTimeoutMs", liveViewTimeoutMs},
+        {"slideshowEnabled", slideshowEnabled},
         {"showQr", showQr}, {"qrSize", qrSize}, {"theme", theme},
     };
     QJsonObject hw{

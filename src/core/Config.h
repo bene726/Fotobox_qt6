@@ -24,6 +24,7 @@ struct Config
     int  slideshowIntervalMs = 4000;
     int  photoDisplayMs     = 3000;
     int  liveViewTimeoutMs  = 3 * 60 * 1000;
+    bool slideshowEnabled   = true;     // Diashow im Leerlauf
     bool showQr             = true;
     int  qrSize             = 130;
     QString theme           = "retro";  // retro | neon | elegant

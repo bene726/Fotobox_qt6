@@ -29,7 +29,10 @@ MainWindow::MainWindow(const Config& config, QWidget* parent)
     setupUi();
     setupHardware();
     applyTheme(cfg.theme);
-    enterSlideshow();
+    if (cfg.slideshowEnabled)
+        enterSlideshow();
+    else
+        enterLiveView();
 }
 
 // ---------------------------------------------------------------- UI
@@ -105,6 +108,24 @@ void MainWindow::setupUi()
     connect(settingsPanel, &SettingsPanel::photoDisplayMsChanged, this, [this](int v) {
         cfg.photoDisplayMs = v;
         photoTimer.setInterval(v);
+    });
+    connect(settingsPanel, &SettingsPanel::slideshowEnabledChanged, this, [this](bool on) {
+        cfg.slideshowEnabled = on;
+        if (!on) {
+            // Laeuft gerade eine Diashow, sofort zum Livebild wechseln.
+            liveViewTimeoutTimer.stop();
+            slideshowTimer.stop();
+            if (state == State::Slideshow)
+                enterLiveView();
+        } else if (state == State::LiveView) {
+            liveViewTimeoutTimer.start();
+        }
+    });
+    connect(settingsPanel, &SettingsPanel::slideshowDelayChanged, this, [this](int ms) {
+        cfg.liveViewTimeoutMs = ms;
+        liveViewTimeoutTimer.setInterval(ms);
+        if (liveViewTimeoutTimer.isActive())
+            liveViewTimeoutTimer.start();   // mit der neuen Zeit neu beginnen
     });
     connect(settingsPanel, &SettingsPanel::showQrChanged, this, [this](bool v) {
         cfg.showQr = v;
@@ -245,7 +266,7 @@ void MainWindow::layoutLayers()
     settingsButton->setGeometry(margin, margin, 56, 56);
 
     const int pw = qMin(r.width() - 2 * margin, 640);
-    const int ph = qMin(r.height() - 2 * margin, 500);
+    const int ph = qMin(r.height() - 2 * margin, 560);
     settingsPanel->setGeometry((r.width() - pw) / 2, (r.height() - ph) / 2, pw, ph);
     settingsShadow->setGeometry(settingsPanel->geometry().translated(shadowOffset, shadowOffset));
 
@@ -325,6 +346,10 @@ void MainWindow::setState(State s)
 
 void MainWindow::enterSlideshow()
 {
+    if (!cfg.slideshowEnabled) {
+        enterLiveView();
+        return;
+    }
     setState(State::Slideshow);
     liveViewTimeoutTimer.stop();
     photoTimer.stop();
@@ -376,7 +401,7 @@ void MainWindow::enterLiveView()
     overlaySource = QPixmap();
     settingsButton->show();
     shutterButton->setVisible(!settingsPanel->isVisible());
-    if (!settingsPanel->isVisible())
+    if (cfg.slideshowEnabled && !settingsPanel->isVisible())
         liveViewTimeoutTimer.start();
 }
 

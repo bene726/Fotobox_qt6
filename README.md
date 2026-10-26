@@ -27,7 +27,7 @@ Die Fotobox kombiniert:
 ## ✨ Features
 
 - Permanentes **Livebild** (USB-Webcam oder Raspberry-Pi-Kamera)
-- **Slideshow** im Idle-Zustand
+- **Diashow** im Leerlauf, abschaltbar, Wartezeit einstellbar
 - **Touch auf dem Display**
   - beendet die Slideshow
   - eigener Auslöse-Knopf auf dem Bildschirm für ein Foto
@@ -328,7 +328,7 @@ Nützliche Optionen:
 
 Tasten: **Leertaste / Enter** lösen ein Foto aus, **Esc / Q** beenden.
 Das Zahnrad oben links öffnet die Einstellungen: Design, **Kamera**, LED-Helligkeit,
-Countdown, Anzeigedauer und QR-Code. Die Kamera-Auswahl listet die erkannten Webcams
+Countdown, Anzeigedauer, **Diashow samt Wartezeit** und QR-Code. Die Kamera-Auswahl listet die erkannten Webcams
 und schaltet sofort um, der Umweg über die Konfigurationsdatei entfällt also.
 
 ### Designs
@@ -716,6 +716,8 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 | SystemData | eventConfigFile | Name der Nextcloud-Datei, Standard `fotobox.json` |
 | Behaviour | countdownSeconds | Countdown-Länge |
 | Behaviour | slideshowIntervalMs, photoDisplayMs, liveViewTimeoutMs | Zeiten in ms |
+| Behaviour | slideshowEnabled | Diashow im Leerlauf ein/aus |
+| Behaviour | liveViewTimeoutMs | nach welcher Zeit ohne Bedienung die Diashow startet |
 | Behaviour | showQr, qrSize | QR-Code ein/aus und Kantenlänge |
 | Behaviour | theme | Design-ID, siehe Abschnitt Designs |
 | Hardware | led, ledBrightness | LED-Backend und Helligkeit in Prozent |
