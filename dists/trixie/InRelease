@@ -8,41 +8,41 @@ Codename: trixie
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS trixie
-Date: Mon, 26 Oct 2026 14:35:29 GMT
+Date: Mon, 26 Oct 2026 14:44:05 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
  20e818068ee1dcc5db27011aeeb012cc               83 main/binary-arm64/Release
- bb6581d7ca5fe714e07840466dc94c47             4399 nightly/binary-arm64/Packages
- 68d875f7bd00476eec170571fce0a8bc             1111 nightly/binary-arm64/Packages.gz
+ 529909cf865529f1c485e0ae7b0d80ad             4408 nightly/binary-arm64/Packages
+ db56c7b6398aaf1c596b7a82ef5747d6             1105 nightly/binary-arm64/Packages.gz
  05b91b400978226e2503a7ac4a3594ee               86 nightly/binary-arm64/Release
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
  f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
  efcaf24c13732b2ae221a25cffa41337a25925f1               83 main/binary-arm64/Release
- d73b1f4b0215cda8ca92c7958cd6befd2d70e331             4399 nightly/binary-arm64/Packages
- a501c457ababf51345677f00a7422701defca908             1111 nightly/binary-arm64/Packages.gz
+ ada2041e065a198063cf56486357219fba536391             4408 nightly/binary-arm64/Packages
+ 54cc7f72bcabc0e2bbaf392010c45e45f8199309             1105 nightly/binary-arm64/Packages.gz
  3a7d4827319a627fadba76945c612977eb4e4175               86 nightly/binary-arm64/Release
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
  6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
  6017c13245e2b64b05256f01a2203dc28d9beca563203915638b0f1644c2ffd2               83 main/binary-arm64/Release
- e26ab3d5c2b80e8b39966b2facf348fe5224b8cfde128ddb4ff8bcadec4488c5             4399 nightly/binary-arm64/Packages
- 624afad9cc95f1262dabb1f5be53a90c48a51447c4dc29edb2ae3af17b34dcc0             1111 nightly/binary-arm64/Packages.gz
+ 1c1e73e9709c8822413d4b97cf6addd0e057ec80aaf3afed788e32c89d7b92ed             4408 nightly/binary-arm64/Packages
+ 376fd4a7aa64355cbc20213a5a1ef69cb56b4a27f222a76f38b37db5f9dd84a0             1105 nightly/binary-arm64/Packages.gz
  ea44d7db7ca57c39a71a6eeb8bae8ef3b75be57fc0d06ad1a49bf6e256b51b38               86 nightly/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmrfZTEACgkQMe+/O2A9
-LUe/eg/8DRyNg9h/W5KtSDqwfqZiiLQMIz1glnsGdoZ56zqy/5Utq/RDnAbvGLs5
-iJWN71bqHLlFRLhFKR3zQB0fuJ5OSKZ0+YI3peSKUdFsRqzuGadXEJG4HBblZBGC
-wDKREbvU2SX5CNs3Mu3p+dqEJWNjzP/Ghwki1Hp86lsFJMTO9v4L/sOynKaLRpOr
-ZBzWIo/7YNB+SR2uKSrJQRTbDuRqA4EPXk/seXgtNSbk+xMvMPOMC2W5ML3CPMDV
-KvyYBXpxPw5jxpvh9F8aerB3q8njnRCEiGTqcQBk882pMhIepe+BMLxJXB0WZmUP
-8zCTDCcy+keOf0n06129081Pp0BAYxFf01jFiNbfJwYw8dfn88FfgkebXdfVoE8/
-s1Ix/cTMbgVDUoAZIAt/3jlsInLD7QC+C+tugffNkIkf2NoFvlxpQvwjM9BeSa82
-a9vNCa+bVEH1O9IlUctGzz/ra0QSVQbJnhz/kxyNZxXTpO30YPyOgqDS+rcg49EC
-0svbj8SUhZ16INhrskGbANzOOk4UpPLtV8/uHaKY9H7us8wsloWlFpyxKNy+Z9Yd
-ulFFWN69Z8i7703pnuW0zYhsRueRA10WeNnTBBu0CBv8Jx8Ji7v9uAh5J6WxKwdm
-5dGchnkVHneDPhTJx+MGMPTi7kAvUtv2k9A9uGNoXvMKCVwNDng=
-=ltpj
+iQIzBAEBCgAdFiEEO95hJvf8piWgWU8+Me+/O2A9LUcFAmrfZzUACgkQMe+/O2A9
+LUfV0xAAoB0Bda75RjDO6rmMW4i1BQ59dfbln34H7jYeanVfH5wVaBr1IXE2T2bx
+NLpAY1lCreKMuUNQhMZP25DcFG7bP2DUeq4IK92cMi75EwnD8d5enNFBD60mub5i
+XMb8fBqS7K7dX4OlqY8AmsE1FJHlLzirJ7j2nxpo3+qrjd3hf5cQVn/DNjKzAG3I
+OUXBH/FmBxtH8501muGYvoPPg45+0pn2hjb5K/dJQ5j9SFKq2XObSCNLweiGDUWt
+/ARloOw32UC/be8ukkLc2Hq1IbCpGvRqokXrl25hs3XMaGOjgwuk169co23Yrg8V
+9KDbUmO90xY7x79U/RdkEXlOLCH5dtek73rZ0ukcdP7eOg3LGgyvNeF3eAwuee/s
+TNzu3pAmvkyGlkryWh2wZB89716lt1eAKPoUdFtBbqEYH1A8KUNBWReaImZDsiS4
+BkZm8dCK5IpRip7VSl7RmqnwsutsX8yUW/bW/R+er2AiW8KMm6pvfmVcGapCfgtg
+6xKWAGxBMguiJVhRwOP9RjoJTNeLoHz4ThJBrMc/4lhMdYOY6164pxEHJd9yISPf
+AOLrtm94T62cKfmyrLUApnJ6+S94xA8EeVsRHml6N+TQXXo/wg3HCClwxA0Ij5tT
+9YSHeSRm9cJGDewKQEZatnWlTMS+mwr9+jLJTRfz7CCkKWLS2PE=
+=iWLe
 -----END PGP SIGNATURE-----
