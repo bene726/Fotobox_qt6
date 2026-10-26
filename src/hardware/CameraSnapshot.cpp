@@ -20,8 +20,7 @@ void CameraSnapshot::capture(const QString& targetDir)
     }
 
     QDir().mkpath(targetDir);
-    const QString file = targetDir + "/snap_"
-                         + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".jpg";
+    const QString file = newFilePath(targetDir, "snap");
     if (!img.save(file, "JPG", 92)) {
         emit captureFailed("Bild konnte nicht gespeichert werden: " + file);
         return;

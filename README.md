@@ -715,6 +715,26 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 
 ---
 
+## 🗂 Dateinamen
+
+Jede Aufnahme bekommt Datum und Uhrzeit in den Namen:
+
+| Quelle | Beispiel |
+|---|---|
+| Spiegelreflex | `photo_2026-10-26_22-45-12.jpg` |
+| Livebild als Foto | `snap_2026-10-26_22-45-12.jpg` |
+| Testbild | `dummy_2026-10-26_22-45-12.jpg` |
+
+Die Reihenfolge geht von groß nach klein, dadurch sortieren die Dateien im
+Dateimanager und in Nextcloud von allein chronologisch. Doppelpunkte kommen
+bewusst nicht vor, damit auch Windows-Clients an derselben Nextcloud damit
+zurechtkommen.
+
+> Dafür muss die Uhr stimmen. Auf einem Pi ohne RTC-Batterie und ohne Netz
+> wären Namen und Sortierung falsch.
+
+---
+
 ## 📸 Ablauf (User-Sicht)
 
 1. Slideshow läuft

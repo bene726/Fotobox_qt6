@@ -103,8 +103,7 @@ void CameraGPhoto::capture(const QString& targetDir)
     }
 
     QDir().mkpath(targetDir);
-    m_file = targetDir + "/photo_"
-             + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".jpg";
+    m_file = newFilePath(targetDir, "photo");
     m_busy = true;
 
     qInfo() << "gphoto2 Aufnahme nach" << m_file;

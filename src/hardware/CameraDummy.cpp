@@ -12,7 +12,7 @@ void CameraDummy::capture(const QString& targetDir)
     QDir().mkpath(targetDir);
 
     const QDateTime now = QDateTime::currentDateTime();
-    const QString file = targetDir + "/dummy_" + now.toString("yyyyMMdd_hhmmss") + ".jpg";
+    const QString file = newFilePath(targetDir, "dummy");
 
     QImage img(1200, 800, QImage::Format_RGB32);
     QLinearGradient grad(0, 0, img.width(), img.height());
