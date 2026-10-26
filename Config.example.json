@@ -25,11 +25,14 @@
     "liveViewWidth": 1280,
     "liveViewHeight": 720,
     "liveViewFps": 30,
-    "gpioChip": "gpiochip0",
+    "gpioChip": "auto",
     "gpioLine": 17,
     "led": "auto",
     "ledBrightness": 50,
-    "ledPwmChip": 0,
-    "ledPwmChannel": 0
+    "ledPwmChip": -1,
+    "ledPwmChannel": 0,
+    "gpioPull": "up",
+    "gpioDebounceMs": 30,
+    "ledPwmFrequency": 1000
   }
 }

@@ -35,6 +35,7 @@ qt_add_executable(fotobox
     src/hardware/LiveViewCameraRpicam.cpp
     src/hardware/TriggerKeyboard.cpp
     src/hardware/TriggerGpio.cpp
+    src/hardware/GpioScan.cpp
     src/hardware/TriggerTimer.cpp
 
     src/input/TouchInput.cpp

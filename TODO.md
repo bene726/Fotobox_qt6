@@ -7,15 +7,16 @@
 - [x] QR-Code optional ein-/ausblendbar
 - [ ] gphoto2-Aufnahme am Mac mit echter DSLR testen
 - [ ] Schriften (OFL) in `fonts/` ablegen, damit die Designs am Pi wie geplant aussehen
-- [ ] LED-PWM am Pi implementieren (LedPwm)
+- [x] LED-PWM implementiert (sysfs)
+- [ ] Taster und LED auf dem Pi 5 testen
 
 ---
 
 ## Mittelfristig
 - [ ] rpicam-vid LiveView auf dem Pi testen (Code vorhanden, ungetestet)
-- [ ] GPIO-Button über libgpiod implementieren (TriggerGpio)
+- [x] GPIO-Taster implementiert (Kernel-uAPI v2, kein libgpiod nötig)
 - [ ] Bildschirmtastatur (Qt Virtual Keyboard) auf dem Pi
-- [ ] LED-Blitz synchron zum Countdown
+- [ ] LED heller schalten während des Countdowns
 - [ ] Upload-Status-Overlay (Nextcloud)
 - [ ] Galerie-Ansicht auf dem Touchscreen
 

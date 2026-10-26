@@ -101,10 +101,13 @@ Config Config::load(const QString& path)
     c.liveViewFps     = hw.value("liveViewFps").toInt(c.liveViewFps);
     c.gpioChip        = hw.value("gpioChip").toString(c.gpioChip);
     c.gpioLine        = hw.value("gpioLine").toInt(c.gpioLine);
+    c.gpioPull        = hw.value("gpioPull").toString(c.gpioPull);
+    c.gpioDebounceMs  = hw.value("gpioDebounceMs").toInt(c.gpioDebounceMs);
     c.ledBackend      = hw.value("led").toString(c.ledBackend);
     c.ledBrightness   = hw.value("ledBrightness").toInt(c.ledBrightness);
     c.ledPwmChip      = hw.value("ledPwmChip").toInt(c.ledPwmChip);
     c.ledPwmChannel   = hw.value("ledPwmChannel").toInt(c.ledPwmChannel);
+    c.ledPwmFrequency = hw.value("ledPwmFrequency").toInt(c.ledPwmFrequency);
 
     c.sourcePath = path;
     qInfo() << "Konfiguration geladen:" << path;

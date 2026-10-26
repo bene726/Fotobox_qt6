@@ -78,7 +78,8 @@ Trigger* createTrigger(const Config& cfg, QObject* parent)
     const QString b = resolve(cfg.triggerBackend, "gpio", "keyboard");
     qInfo() << "Trigger-Backend:" << b;
     if (b == "gpio")
-        return new TriggerGpio(cfg.gpioChip, cfg.gpioLine, parent);
+        return new TriggerGpio(cfg.gpioChip, cfg.gpioLine, cfg.gpioPull, cfg.gpioDebounceMs,
+                               parent);
     if (b == "timer")
         return new TriggerTimer(cfg.autoTriggerMs, parent);
     if (b != "keyboard")
@@ -92,7 +93,7 @@ LedController* createLed(const Config& cfg, QObject* parent)
     qInfo() << "LED-Backend:" << b;
     LedController* led = nullptr;
     if (b == "pwm")
-        led = new LedPwm(cfg.ledPwmChip, cfg.ledPwmChannel, parent);
+        led = new LedPwm(cfg.ledPwmChip, cfg.ledPwmChannel, cfg.ledPwmFrequency, parent);
     else {
         if (b != "dummy")
             qWarning() << "Unbekanntes LED-Backend" << b << "- nutze dummy";

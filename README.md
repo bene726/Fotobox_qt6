@@ -95,11 +95,12 @@ src/
 │   ├── LiveViewCameraQt.*   # Webcam über Qt Multimedia (Host)
 │   ├── CameraSnapshot.*     # Foto = aktueller Livebild-Frame
 │   ├── LedController.*      # LED-Helligkeit (Dummy)
-│   ├── LedPwm.*             # LED über PWM am Pi (Platzhalter)
+│   ├── LedPwm.*             # LED über Hardware-PWM am Pi
 │   ├── Trigger.*            # Auslöser-Interface
 │   ├── TriggerKeyboard.*    # Leertaste / Enter
 │   ├── TriggerTimer.*       # automatisch, für Tests
-│   ├── TriggerGpio.*        # Button am Pi (Platzhalter)
+│   ├── TriggerGpio.*        # Taster am Pi (Kernel-uAPI v2)
+│   ├── GpioScan.*           # Diagnose: Pin-Belegung ermitteln
 │   └── HardwareFactory.*    # wählt Backends per Konfiguration
 │
 ├── input/                   # Eingaben
@@ -137,6 +138,8 @@ Nützliche Optionen:
 | `--trigger keyboard\|gpio\|timer` | Auslöser erzwingen |
 | `--theme <id>` | Design erzwingen (retro, neon, elegant, wedding-blush, wedding-green, pool) |
 | `--screenshot <datei> --show settings` | Bild rendern und beenden (für Tests) |
+| `--gpio-info` | GPIO-Leitungen auflisten (Pi) |
+| `--gpio-watch` | Taster-Pin ermitteln: drücken und ablesen (Pi) |
 
 Tasten: **Leertaste / Enter** lösen ein Foto aus, **Esc / Q** beenden.
 Das Zahnrad oben links öffnet die Einstellungen: Design, LED-Helligkeit, Countdown, Anzeigedauer, QR-Code.
@@ -292,7 +295,8 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 | Hardware | camera, liveView, trigger | `auto` oder ein konkretes Backend (`camera`: dummy, snapshot, gphoto; `liveView`: dummy, qt, rpicam) |
 | Hardware | gphoto2Binary, rpicamBinary | Programmnamen/Pfade |
 | Hardware | liveViewWidth/Height/Fps | Auflösung des Livebilds |
-| Hardware | gpioChip, gpioLine | Button am Pi |
+| Hardware | gpioChip, gpioLine, gpioPull, gpioDebounceMs | Taster am Pi, Details in [GPIO.md](GPIO.md) |
+| Hardware | ledPwmChip, ledPwmChannel, ledPwmFrequency | Hardware-PWM für die LED-Beleuchtung |
 
 > Die echte `config.json` wird per `.gitignore` ausgeschlossen.
 

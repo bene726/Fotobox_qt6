@@ -3,6 +3,7 @@
 
 #include "MainWindow.h"
 #include "core/Config.h"
+#include "hardware/GpioScan.h"
 #include "ui/Theme.h"
 
 #include <QDir>
@@ -12,6 +13,15 @@
 
 int main(int argc, char* argv[])
 {
+    // Die Diagnosemodi laufen ohne Bildschirm, deshalb vor QApplication pruefen.
+    for (int i = 1; i < argc; ++i) {
+        const QString a = QString::fromLocal8Bit(argv[i]);
+        if (a == "--gpio-info" || a == "--gpio-watch") {
+            QCoreApplication app(argc, argv);
+            return GpioScan::run(a == "--gpio-watch");
+        }
+    }
+
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("fotobox");
 #ifdef FOTOBOX_VERSION_STR
@@ -31,8 +41,10 @@ int main(int argc, char* argv[])
     QCommandLineOption optTheme("theme", "Design: retro|neon|elegant|wedding-blush|wedding-green|pool", "id");
     QCommandLineOption optScreenshot("screenshot", "Nach 2 s ein Bild speichern und beenden", "datei");
     QCommandLineOption optShow("show", "Startzustand fuer Screenshots: liveview|settings|countdown", "zustand");
+    QCommandLineOption optGpioInfo("gpio-info", "GPIO-Leitungen auflisten und beenden");
+    QCommandLineOption optGpioWatch("gpio-watch", "GPIO-Leitungen beobachten (Pin des Tasters finden)");
     parser.addOptions({optConfig, optWindowed, optCamera, optLiveView, optTrigger, optTheme,
-                       optScreenshot, optShow});
+                       optScreenshot, optShow, optGpioInfo, optGpioWatch});
     parser.process(app);
 
     const QString cfgPath = parser.isSet(optConfig) ? parser.value(optConfig)

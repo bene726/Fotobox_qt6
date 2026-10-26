@@ -34,12 +34,15 @@ struct Config
     int     liveViewWidth   = 1280;
     int     liveViewHeight  = 720;
     int     liveViewFps     = 30;
-    QString gpioChip        = "gpiochip0";
-    int     gpioLine        = 17;
+    QString gpioChip        = "auto";   // "auto" sucht den Header-Chip selbst
+    int     gpioLine        = 17;       // BCM-Nummer des Tasters
+    QString gpioPull        = "up";     // up: Taster gegen GND | down: gegen 3,3 V | none
+    int     gpioDebounceMs  = 30;
     QString ledBackend      = "auto";   // auto | dummy | pwm
     int     ledBrightness   = 50;       // 0..100 %
-    int     ledPwmChip      = 0;
+    int     ledPwmChip      = -1;       // -1 = passenden Chip selbst suchen
     int     ledPwmChannel   = 0;
+    int     ledPwmFrequency = 1000;     // Hz
 
     // Pfad der geladenen Datei (leer = Standardwerte)
     QString sourcePath;
