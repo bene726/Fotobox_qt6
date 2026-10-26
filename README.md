@@ -355,7 +355,7 @@ Die Fotobox ist eine Anwendung mit Oberfläche und braucht einen Bildschirm.
 `could not connect to display`. Die Optionen `--list-cameras`, `--gpio-info`,
 `--gpio-watch`, `--help` und `--version` laufen dagegen auch über SSH.
 
-Wo die Konfiguration liegt, steht im Abschnitt [Konfiguration](#️-konfiguration).
+Wo die Konfiguration liegt, steht im Abschnitt [Konfiguration](#-konfiguration).
 
 ---
 
@@ -385,10 +385,15 @@ ninja -C build
 
 ---
 
-## 📦 Installation auf dem Raspberry Pi (apt)
+## 📦 Einrichtung auf dem Raspberry Pi
 
-Fertige Pakete für **Raspberry Pi OS 13 (Trixie), 64-bit** liegen in einem
-Apt-Repository auf GitHub Pages: <https://bene726.github.io/Fotobox_qt6/>
+Von einem frischen **Raspberry Pi OS 13 (Trixie), 64-bit** bis zur laufenden Fotobox.
+Die Schritte bauen aufeinander auf. Am Ende steht eine Checkliste zum Abhaken.
+
+### 1. Paket installieren
+
+Fertige Pakete liegen in einem Apt-Repository auf GitHub Pages:
+<https://bene726.github.io/Fotobox_qt6/>
 
 ```bash
 sudo mkdir -p /etc/apt/keyrings
@@ -399,14 +404,183 @@ echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/fotobox.gpg] https://bene726.g
 sudo apt update && sudo apt install fotobox
 ```
 
-Danach kommen Updates ganz normal über `sudo apt upgrade`.
+Updates kommen danach über `sudo apt upgrade`.
 
 - **Komponente `main`**: Releases (Git-Tags `v*`).
 - **Komponente `nightly`**: jeder Stand von `main`. Dafür `main nightly` in die Zeile schreiben.
-- Ist das Repo (noch) nicht signiert, fehlt `fotobox.gpg`; dann statt `signed-by=...` die Option `trusted=yes` verwenden.
+- Ist das Repo (noch) nicht signiert, fehlt `fotobox.gpg`; dann statt `signed-by=...`
+  die Option `trusted=yes` verwenden.
 
-Das Paket installiert `fotobox` nach `/usr/bin`, eine Desktop-Datei und `Config.example.json`
-unter `/usr/share/doc/fotobox/`. Die eigene Konfiguration gehört nach `~/.config/fotobox/config.json`.
+Installiert werden `fotobox` nach `/usr/bin`, die Schriften nach
+`/usr/share/fotobox/fonts`, eine Desktop-Datei, `Config.example.json` unter
+`/usr/share/doc/fotobox/` und eine polkit-Regel für das Ausschalten.
+
+### 2. Gruppen prüfen
+
+Der Benutzer, unter dem die Fotobox läuft, braucht drei Gruppen:
+
+| Gruppe | Wofür | Ohne sie |
+|---|---|---|
+| `video` | Zugriff auf die USB-Webcam | kein Livebild |
+| `gpio` | `/dev/gpiochip*` und `/sys/class/pwm` | Taster und LED ohne Funktion |
+| `fotobox` | polkit-Regel zum Ausschalten | der Ausschalt-Knopf scheitert |
+
+```bash
+id -nG
+```
+
+Fehlt eine, nachtragen und **neu anmelden**:
+
+```bash
+sudo usermod -aG video,gpio,fotobox "$USER"
+```
+
+> Die Gruppe `fotobox` entsteht automatisch, wenn der Benutzer so heißt. Läuft die
+> Fotobox unter einem anderen Namen, einmalig `sudo groupadd -f fotobox` ausführen.
+
+### 3. Kamera freigeben
+
+Auf dem Desktop greift `gvfs` ungefragt auf angeschlossene Kameras zu und blockiert
+damit `gphoto2`. Ohne diesen Schritt schlägt **jede** Aufnahme fehl.
+
+```bash
+systemctl --user mask gvfs-gphoto2-volume-monitor.service
+systemctl --user stop gvfs-gphoto2-volume-monitor.service
+pkill -f 'gvfsd?-gphoto2'
+```
+
+> Es gibt **zwei** Prozesse: den Monitor `gvfs-gphoto2-volume-monitor` und den Dienst
+> `gvfsd-gphoto2`. Ein Muster ohne das `d` erwischt nur einen davon.
+
+Prüfen:
+
+```bash
+gphoto2 --auto-detect && gphoto2 --capture-image-and-download --filename /tmp/test.jpg
+```
+
+### 4. PWM für die LED aktivieren
+
+Ans Ende von `/boot/firmware/config.txt`, danach neu starten:
+
+```
+[all]
+dtoverlay=pwm-pio,gpio=12
+```
+
+Die Pin-Nummer muss zur Verdrahtung passen, siehe
+[Vorgeschlagene Pinbelegung](#-vorgeschlagene-pinbelegung). Ohne diesen Eintrag
+bleibt die Beleuchtung dunkel, alles andere funktioniert.
+
+### 5. Konfiguration anlegen
+
+```bash
+sudo mkdir -p /etc/fotobox
+sudo cp /usr/share/doc/fotobox/Config.example.json /etc/fotobox/config.json
+sudo nano /etc/fotobox/config.json
+```
+
+Wichtig sind `basePath` (der Nextcloud-Ordner) und die Hardware-Backends:
+
+```json
+"Hardware": { "camera": "gphoto", "liveView": "qt", "liveViewDevice": "WEB CAM" }
+```
+
+> `"liveView": "auto"` wählt auf dem Pi `rpicam` für die CSI-Kamera. Mit einer
+> USB-Webcam bleibt das Bild dann schwarz. Für eine Webcam gehört dort `qt` hin.
+
+Link und Passwort kommen in die Datei im Nextcloud-Ordner, Details unter
+[Konfiguration](#-konfiguration).
+
+### 6. Autostart einrichten
+
+Die Fotobox ist eine Anwendung mit Oberfläche und braucht eine laufende
+Desktop-Sitzung. Der einfachste und robusteste Weg ist der Autostart des Desktops:
+
+```bash
+mkdir -p ~/.config/autostart
+cp /usr/share/applications/fotobox.desktop ~/.config/autostart/
+```
+
+Damit startet die Fotobox, sobald sich der Desktop anmeldet. Dazu gehört die
+automatische Anmeldung: `sudo raspi-config` → **System Options** → **Boot / Auto Login**
+→ **Desktop Autologin**.
+
+<details>
+<summary>Alternative: systemd-Benutzerdienst</summary>
+
+Wer lieber einen Dienst mit Neustart bei Absturz möchte, legt
+`~/.config/systemd/user/fotobox.service` an:
+
+```ini
+[Unit]
+Description=Fotobox
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/fotobox
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
+```
+
+Aktivieren:
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable fotobox.service
+```
+
+> Der Dienst erbt die Variablen der Desktop-Sitzung nur, wenn der Compositor sie
+> an systemd übergibt. Tut er das nicht, startet die Anwendung ohne Anzeige und
+> bricht mit `could not connect to display` ab. Dann ist der Autostart des
+> Desktops oben der verlässlichere Weg.
+
+</details>
+
+### 7. Bildschirm wachhalten
+
+Ohne diesen Schritt wird der Bildschirm mitten auf der Feier schwarz:
+`sudo raspi-config` → **Display Options** → **Screen Blanking** → **No**.
+
+### 8. Nextcloud
+
+Noch offen und bewusst nicht Teil des Pakets. Zwei Wege stehen zur Wahl:
+
+- **Sync-Client auf dem Pi**: Die Fotobox schreibt nur in den Ordner, der Client
+  lädt hoch. Einfach, braucht aber eine Desktop-Anwendung im Hintergrund.
+- **Upload aus der Anwendung** über WebDAV. Mehr Kontrolle, muss aber erst gebaut
+  werden.
+
+Bis dahin liegen die Fotos lokal unter `basePath/yearPath/partyPath`.
+
+### 9. Prüfen
+
+Alle Befehle laufen ohne Bildschirm, also auch über SSH:
+
+```bash
+fotobox --dump-config     # welche Dateien gelten, welche Werte wirken
+fotobox --list-cameras    # erkennt das System die Webcam?
+fotobox --test-camera     # kommen wirklich Bilder an?
+fotobox --gpio-info       # Belegung der GPIO-Leitungen
+fotobox --gpio-watch      # Taster drücken, Pin-Nummer ablesen
+```
+
+### Checkliste
+
+- [ ] Paket installiert, `fotobox --version` antwortet
+- [ ] `id -nG` zeigt `video`, `gpio` und `fotobox`
+- [ ] `gphoto2 --capture-image-and-download` erzeugt ein Bild
+- [ ] `fotobox --test-camera` meldet ankommende Bilder
+- [ ] `dtoverlay=pwm-pio` eingetragen, `/sys/class/pwm/` ist nicht leer
+- [ ] `/etc/fotobox/config.json` angelegt, `fotobox --dump-config` zeigt die richtigen Werte
+- [ ] Autostart eingerichtet und ein Neustart getestet
+- [ ] Automatische Anmeldung aktiv
+- [ ] Bildschirmabschaltung deaktiviert
+- [ ] Taster löst aus, LED-Regler wirkt
 
 ### Pipeline
 
@@ -497,12 +671,6 @@ fotobox --dump-config
 Die Ausgabe nennt die gelesenen Dateien in der Reihenfolge ihrer Anwendung, die
 nicht vorhandenen, alle wirksamen Werte und den Bildordner. Das Passwort erscheint
 nur als `(gesetzt)`, die Ausgabe lässt sich also gefahrlos weitergeben.
-
-### Einrichten auf dem Pi
-
-```bash
-sudo mkdir -p /etc/fotobox && sudo cp /usr/share/doc/fotobox/Config.example.json /etc/fotobox/config.json && sudo nano /etc/fotobox/config.json
-```
 
 ### Die Datei in der Nextcloud
 
