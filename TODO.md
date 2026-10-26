@@ -5,7 +5,7 @@
 - [x] Countdown konfigurierbar machen
 - [x] Case-insensitive Dateifilter (JPG / PNG)
 - [x] QR-Code optional ein-/ausblendbar
-- [ ] gphoto2-Aufnahme mit der Canon EOS 600D testen
+- [x] gphoto2-Aufnahme mit der Canon EOS 600D getestet (2,7 s bei Large Fine)
 - [ ] Schriften (OFL) in `fonts/` ablegen, damit die Designs am Pi wie geplant aussehen
 - [x] LED-PWM implementiert (sysfs)
 - [ ] Taster und LED auf dem Pi 5 testen

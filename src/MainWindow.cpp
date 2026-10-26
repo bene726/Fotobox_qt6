@@ -454,6 +454,16 @@ void MainWindow::onCountdownTick()
     countdownTimer.stop();
     countdownOverlay->hide();
     setState(State::Capturing);
+
+    // Die Spiegelreflex braucht ein paar Sekunden zum Auslösen und Übertragen.
+    // Solange das letzte Livebild einfrieren, damit sofort etwas zu sehen ist.
+    // Das echte Foto ersetzt es, sobald es da ist.
+    const QImage frozen = liveCam ? liveCam->lastFrame() : QImage();
+    if (!frozen.isNull()) {
+        qInfo() << "Livebild eingefroren, warte auf die Kamera";
+        showOverlayImage(QPixmap::fromImage(frozen));
+    }
+
     camera->capture(imagePath);
 }
 

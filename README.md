@@ -99,6 +99,30 @@ gphoto2 --auto-detect
 gphoto2 --capture-image-and-download --filename /tmp/test.jpg
 ```
 
+#### Wie lange eine Aufnahme dauert
+
+Gemessen auf einem Pi 5 mit einer Canon EOS 600D:
+
+| Schritt | Zeit |
+|---|---|
+| Kamera öffnen und abfragen | 0,1 s |
+| Auslösen und Bild übertragen | 2,5 s |
+
+Die Zeit geht fast vollständig für die Übertragung über USB 2.0 drauf. Der
+wirksamste Hebel ist deshalb die Bildgröße in der Kamera:
+
+```bash
+gphoto2 --get-config imageformat          # aktuelle Einstellung
+gphoto2 --set-config imageformat=2        # Medium Fine JPEG
+```
+
+Ein Objektiv auf manuellem Fokus spart zusätzlich die Zeit für den Autofokus
+und kann bei wenig Licht nicht danebenliegen.
+
+Die verbleibende Wartezeit überbrückt die Fotobox selbst: sobald der Countdown
+abgelaufen ist, friert sie das Livebild ein, damit sofort etwas zu sehen ist.
+Das echte Foto ersetzt es, sobald es da ist.
+
 ---
 
 ### 🖐 Eingaben
