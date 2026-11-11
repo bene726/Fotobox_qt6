@@ -27,7 +27,8 @@ Die Fotobox kombiniert:
 ## ✨ Features
 
 - Permanentes **Livebild** (USB-Webcam oder Raspberry-Pi-Kamera)
-- **Diashow** im Leerlauf, abschaltbar, Wartezeit einstellbar
+- **Fotoshow** im Leerlauf: die Bilder liegen als Stapel von Abzügen auf dem
+  Bildschirm, mit Schild und eigenem Auslöser-Text. Abschaltbar, Wartezeit einstellbar
 - **Touch auf dem Display**
   - beendet die Slideshow
   - eigener Auslöse-Knopf auf dem Bildschirm für ein Foto
@@ -250,6 +251,23 @@ cat /sys/class/pwm/pwmchip0/npwm
 
 Ist die vorhandene Verdrahtung unbekannt, nennt `fotobox --gpio-watch` die Nummer
 auf Knopfdruck. Details in [GPIO.md](GPIO.md).
+
+---
+
+### 🖼 Fotoshow
+
+Im Leerlauf zeigt die Fotobox die bisherigen Bilder. Damit auf einen Blick klar ist,
+dass dort **nicht** das Livebild läuft, sieht dieser Zustand bewusst anders aus:
+
+- die Bilder liegen als **Stapel von Abzügen** übereinander, leicht gedreht, mit
+  Papierrand; die beiden vorherigen Fotos schauen abgedunkelt dahinter hervor
+- oben links ein **Schild**, bei Retro „FOTOSHOW LÄUFT"
+- der Auslöser unten trägt einen **einladenden Text** statt „Foto machen",
+  bei Retro „Mach dein eigenes Foto"
+- der QR-Code bleibt sichtbar
+
+Alle Texte und Farben kommen aus dem Design, siehe `slideshowTag` und
+`slideshowButton` in `src/ui/Theme.cpp`.
 
 ---
 

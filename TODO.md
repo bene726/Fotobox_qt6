@@ -22,6 +22,7 @@
 
 ## Mittelfristig
 - [x] Diashow abschaltbar, Wartezeit im Menü einstellbar
+- [x] Fotoshow als Stapel von Abzügen, damit sie vom Livebild unterscheidbar ist
 - [x] Livebild der USB-Webcam auf dem Pi getestet
 - [ ] rpicam-vid LiveView ist vorhanden, aber ungetestet (nur nötig mit Pi-Kamera)
 - [x] GPIO-Taster implementiert (Kernel-uAPI v2, kein libgpiod nötig)

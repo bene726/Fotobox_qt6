@@ -42,6 +42,8 @@ struct Theme
     // Texte
     QString hintText;          // Hinweis auf den physischen Taster
     QString shutterText;       // Beschriftung des Ausloesers auf dem Bildschirm
+    QString slideshowTag;      // Schild waehrend der Fotoshow
+    QString slideshowButton;   // Ausloeser waehrend der Fotoshow
     QString countdownCaption;
     QString qrTitle;
 
@@ -54,6 +56,7 @@ struct Theme
     QString gearStyle() const;
     QString hintStyle() const;
     QString shutterStyle() const;
+    QString tagStyle() const;
     QString countdownOverlayStyle() const;
     QString countdownCircleStyle(int diameter) const;
     QString countdownLabelStyle() const;

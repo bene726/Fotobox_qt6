@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QPixmap>
+#include <QList>
 #include <QStringList>
 #include <QTimer>
 
@@ -83,6 +84,8 @@ private:
     void shutdownSystem();
 
     void showOverlayImage(const QPixmap& pix);
+    void renderStack();                    // Fotoshow: Stapel aus Abzuegen zeichnen
+    QPixmap fitToScreen(const QPixmap& pix) const;
     void showMessage(const QString& text, int ms = 3000);
 
     Config cfg;
@@ -104,8 +107,13 @@ private:
     QToolButton* settingsButton = nullptr;
     QWidget* settingsShadow = nullptr;
     SettingsPanel* settingsPanel = nullptr;
+    QLabel* showTag = nullptr;             // "Fotoshow läuft"
     QLabel* messageLabel = nullptr;
     QPixmap overlaySource;
+
+    // Fotoshow: das aktuelle Bild und die beiden davor, unskaliert
+    QPixmap slideSource;
+    QList<QPixmap> slidesBefore;
 
     // Timer
     QTimer slideshowTimer;

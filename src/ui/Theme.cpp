@@ -80,6 +80,16 @@ QString Theme::shutterStyle() const
         .arg(rgba(panel), rgba(text));
 }
 
+QString Theme::tagStyle() const
+{
+    // Papierschild, das die Fotoshow benennt.
+    return QString(
+        "color: %1; background-color: %2; border: %3px solid %4; border-radius: %5px;"
+        " padding: 10px 22px; font-family: \"%6\"; font-size: 22px; %7")
+        .arg(rgba(text), rgba(panel)).arg(panelBorderWidth).arg(rgba(panelBorder))
+        .arg(radius).arg(displayFamily(), upperCase ? "text-transform: uppercase;" : "");
+}
+
 QString Theme::countdownOverlayStyle() const
 {
     return QString("#countdownOverlay { background-color: %1; }").arg(rgba(overlay));
@@ -233,6 +243,8 @@ static Theme retro()
     t.upperCase = true;
     t.hintText = QString::fromUtf8("Drück den roten Knopf!");
     t.shutterText = QString::fromUtf8("Foto machen");
+    t.slideshowTag = QString::fromUtf8("Fotoshow läuft");
+    t.slideshowButton = QString::fromUtf8("Mach dein eigenes Foto");
     t.countdownCaption = "Sag Cheese!";
     t.qrTitle = "Fotos ansehen";
     return t;
@@ -282,6 +294,8 @@ static Theme neon()
     t.upperCase = true;
     t.hintText = QString::fromUtf8("Drück den Knopf für ein Foto");
     t.shutterText = QString::fromUtf8("Foto starten");
+    t.slideshowTag = QString::fromUtf8("Fotoshow läuft");
+    t.slideshowButton = QString::fromUtf8("Jetzt selbst ein Foto");
     t.countdownCaption = QString::fromUtf8("Lächeln!");
     t.qrTitle = "Fotos ansehen";
     return t;
@@ -331,6 +345,8 @@ static Theme elegant()
     t.upperCase = false;
     t.hintText = QString::fromUtf8("Knopf drücken für ein Foto");
     t.shutterText = QString::fromUtf8("Foto aufnehmen");
+    t.slideshowTag = QString::fromUtf8("Fotoshow");
+    t.slideshowButton = QString::fromUtf8("Selbst ein Foto aufnehmen");
     t.countdownCaption = QString::fromUtf8("Bitte lächeln");
     t.qrTitle = "Eure Fotos";
     return t;
@@ -381,6 +397,8 @@ static Theme weddingBlush()
     t.upperCase = false;
     t.hintText = QString::fromUtf8("Knopf drücken für ein Foto");
     t.shutterText = QString::fromUtf8("Foto aufnehmen");
+    t.slideshowTag = QString::fromUtf8("Fotoshow");
+    t.slideshowButton = QString::fromUtf8("Auch ein Foto aufnehmen");
     t.countdownCaption = QString::fromUtf8("Bitte lächeln");
     t.qrTitle = "Unsere Fotos";
     t.scriptDisplay = true;
@@ -432,6 +450,8 @@ static Theme weddingGreen()
     t.upperCase = false;
     t.hintText = QString::fromUtf8("Knopf drücken für ein Foto");
     t.shutterText = QString::fromUtf8("Foto aufnehmen");
+    t.slideshowTag = QString::fromUtf8("Fotoshow");
+    t.slideshowButton = QString::fromUtf8("Auch ein Foto aufnehmen");
     t.countdownCaption = QString::fromUtf8("Bitte lächeln");
     t.qrTitle = "Eure Fotos";
     return t;
@@ -482,6 +502,8 @@ static Theme pool()
     t.upperCase = false;
     t.hintText = QString::fromUtf8("Drück den Knopf!");
     t.shutterText = QString::fromUtf8("Foto machen");
+    t.slideshowTag = QString::fromUtf8("Fotoshow läuft");
+    t.slideshowButton = QString::fromUtf8("Ich will auch eins!");
     t.countdownCaption = "Splash!";
     t.qrTitle = "Fotos vom Pool";
     return t;

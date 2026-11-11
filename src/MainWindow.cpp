@@ -14,6 +14,8 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QPainter>
+#include <QPen>
 #include <QResizeEvent>
 #include <QProcess>
 #include <QPushButton>
@@ -65,6 +67,10 @@ void MainWindow::setupUi()
     countdownLabel->setAlignment(Qt::AlignCenter);
     countdownCaption = new QLabel(countdownOverlay);
     countdownCaption->setAlignment(Qt::AlignCenter);
+
+    showTag = new QLabel(central);
+    showTag->setAttribute(Qt::WA_TransparentForMouseEvents);
+    showTag->hide();
 
     shutterButton = new QPushButton(central);
     shutterButton->setCursor(Qt::PointingHandCursor);
@@ -208,7 +214,10 @@ void MainWindow::applyTheme(const QString& id)
     central->setStyleSheet(theme.centralStyle());
     settingsButton->setStyleSheet(theme.gearStyle());
     shutterButton->setStyleSheet(theme.shutterStyle());
-    shutterButton->setText(theme.shutterText);
+    shutterButton->setText(state == State::Slideshow ? theme.slideshowButton : theme.shutterText);
+    showTag->setStyleSheet(theme.tagStyle());
+    showTag->setText(theme.slideshowTag);
+    showTag->adjustSize();
     countdownOverlay->setStyleSheet(theme.countdownOverlayStyle());
     countdownLabel->setStyleSheet(theme.countdownLabelStyle());
     countdownCaption->setStyleSheet(theme.countdownCaptionStyle());
@@ -265,6 +274,9 @@ void MainWindow::layoutLayers()
 
     settingsButton->setGeometry(margin, margin, 56, 56);
 
+    showTag->adjustSize();
+    showTag->move(margin + 56 + 16, margin);
+
     const int pw = qMin(r.width() - 2 * margin, 640);
     const int ph = qMin(r.height() - 2 * margin, 560);
     settingsPanel->setGeometry((r.width() - pw) / 2, (r.height() - ph) / 2, pw, ph);
@@ -273,7 +285,9 @@ void MainWindow::layoutLayers()
     const int msgH = 56;
     messageLabel->setGeometry(margin, margin + 56 + 16, r.width() - 2 * margin, msgH);
 
-    if (!overlaySource.isNull())
+    if (state == State::Slideshow && !slideSource.isNull())
+        renderStack();
+    else if (!overlaySource.isNull())
         photoOverlay->setPixmap(overlaySource.scaled(
             r.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
@@ -293,12 +307,86 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     QMainWindow::keyPressEvent(event);
 }
 
+// Zeichnet die Fotoshow als Stapel von Abzuegen: zwei leicht gedrehte dahinter,
+// das aktuelle Bild gerade darueber. Alles in ein Bild, damit auf dem Pi nicht
+// mehrere gedrehte Widgets uebereinander liegen.
+void MainWindow::renderStack()
+{
+    if (slideSource.isNull() || central->size().isEmpty())
+        return;
+
+    const QSize canvas = central->size();
+    QPixmap out(canvas);
+    out.fill(theme.bg);
+
+    QPainter p(&out);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+
+    // Platz lassen: oben das Schild, unten Ausloeser und QR-Karte.
+    const int oben = 24 + showTag->height() + 10;
+    const int unten = 24 + shutterButton->sizeHint().height() + 14;
+    QRect bereich(0, oben, canvas.width(), canvas.height() - oben - unten);
+    bereich.adjust(44, 10, -44, -10);     // Luft fuer die gedrehten Abzuege
+
+    const int rand = qMax(10, canvas.height() / 52);
+    const QSize innen = slideSource.size().scaled(bereich.size() - QSize(2*rand, 2*rand),
+                                                  Qt::KeepAspectRatio);
+    const QSize karte = innen + QSize(2*rand, 2*rand);
+    const QPointF mitte(bereich.center().x(), bereich.center().y());
+
+    auto abzug = [&](const QPixmap& foto, qreal winkel, qreal dx, qreal dy, int daempfung) {
+        p.save();
+        p.translate(mitte.x() + dx, mitte.y() + dy);
+        p.rotate(winkel);
+        const QRectF k(-karte.width()/2.0, -karte.height()/2.0, karte.width(), karte.height());
+        const QRectF f = k.adjusted(rand, rand, -rand, -rand);
+        p.fillRect(k, theme.panel);
+        if (!foto.isNull())
+            p.drawPixmap(f, foto, QRectF(foto.rect()));
+        if (theme.panelBorderWidth > 0) {
+            p.setPen(QPen(theme.panelBorder, theme.panelBorderWidth));
+            p.setBrush(Qt::NoBrush);
+            p.drawRect(k);
+        }
+        if (daempfung > 0) {   // dahinterliegende Abzuege zuruecknehmen
+            QColor schleier = theme.bg;
+            schleier.setAlpha(daempfung);
+            p.fillRect(k, schleier);
+        }
+        p.restore();
+    };
+
+    const QPixmap hinten1 = slidesBefore.size() > 0 ? slidesBefore.at(0) : slideSource;
+    const QPixmap hinten2 = slidesBefore.size() > 1 ? slidesBefore.at(1) : slideSource;
+    abzug(hinten2, -5, -canvas.width()*0.045, 10, 150);
+    abzug(hinten1,  5,  canvas.width()*0.045,  6, 110);
+    abzug(slideSource, 0, 0, 0, 0);
+    p.end();
+
+    overlaySource = QPixmap();            // der Stapel ersetzt das Einzelbild
+    photoOverlay->setPixmap(out);
+    photoOverlay->show();
+}
+
+// Auf Bildschirmgroesse bringen. Ein Foto der Spiegelreflex hat 18 Megapixel und
+// belegt ungerechnet rund 70 MB; fuer ein 1024er Display ist das sinnlos.
+QPixmap MainWindow::fitToScreen(const QPixmap& pix) const
+{
+    const QSize s = central->size();
+    if (s.isEmpty() || pix.isNull())
+        return pix;
+    if (pix.width() <= s.width() && pix.height() <= s.height())
+        return pix;
+    return pix.scaled(s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
 void MainWindow::showOverlayImage(const QPixmap& pix)
 {
-    overlaySource = pix;
-    photoOverlay->setPixmap(pix.scaled(central->size(),
-                                       Qt::KeepAspectRatio,
-                                       Qt::SmoothTransformation));
+    overlaySource = fitToScreen(pix);
+    photoOverlay->setPixmap(overlaySource.scaled(central->size(),
+                                                 Qt::KeepAspectRatio,
+                                                 Qt::SmoothTransformation));
     photoOverlay->show();
 }
 
@@ -355,6 +443,11 @@ void MainWindow::enterSlideshow()
     photoTimer.stop();
     shutterButton->show();
 
+    showTag->show();
+    showTag->raise();
+    shutterButton->setText(theme.slideshowButton);
+    shutterButton->adjustSize();
+
     slideshowImages = FileWatcher::imageFiles(imagePath);
     slideshowIndex = 0;
 
@@ -389,7 +482,14 @@ void MainWindow::showNextSlide()
         qWarning() << "Bild nicht ladbar:" << file;
         return;
     }
-    showOverlayImage(pix);
+
+    // Die beiden vorherigen Bilder liegen im Stapel dahinter.
+    if (!slideSource.isNull())
+        slidesBefore.prepend(slideSource);
+    while (slidesBefore.size() > 2)
+        slidesBefore.removeLast();
+    slideSource = fitToScreen(pix);
+    renderStack();
 }
 
 void MainWindow::enterLiveView()
@@ -399,6 +499,10 @@ void MainWindow::enterLiveView()
     photoTimer.stop();
     photoOverlay->hide();
     overlaySource = QPixmap();
+    slideSource = QPixmap();
+    slidesBefore.clear();
+    showTag->hide();
+    shutterButton->setText(theme.shutterText);
     settingsButton->show();
     shutterButton->setVisible(!settingsPanel->isVisible());
     if (cfg.slideshowEnabled && !settingsPanel->isVisible())
@@ -412,6 +516,7 @@ void MainWindow::startCountdown()
     liveViewTimeoutTimer.stop();
     photoTimer.stop();
     photoOverlay->hide();
+    showTag->hide();
     shutterButton->hide();
     settingsButton->hide();
 
