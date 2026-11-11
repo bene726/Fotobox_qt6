@@ -85,6 +85,7 @@ private:
 
     void showOverlayImage(const QPixmap& pix);
     void renderStack();                    // Fotoshow: Stapel aus Abzuegen zeichnen
+    QPixmap loadScaled(const QString& pfad) const;   // verkleinert schon beim Dekodieren
     QPixmap fitToScreen(const QPixmap& pix) const;
     void showMessage(const QString& text, int ms = 3000);
 

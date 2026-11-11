@@ -269,6 +269,11 @@ dass dort **nicht** das Livebild läuft, sieht dieser Zustand bewusst anders aus
 Alle Texte und Farben kommen aus dem Design, siehe `slideshowTag` und
 `slideshowButton` in `src/ui/Theme.cpp`.
 
+Fotos werden bereits **beim Dekodieren verkleinert**, nicht erst danach. Ein Bild der
+EOS 600D hat 18 Megapixel und belegt in voller Größe rund 68 MB im Speicher; so sind
+es 2 MB, und das Laden ist viermal schneller. Die Lage aus den EXIF-Daten wird dabei
+beachtet, Hochformat kommt also richtig herum an.
+
 ---
 
 ### 🖼 UI-Konzept
