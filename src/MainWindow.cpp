@@ -33,6 +33,7 @@ MainWindow::MainWindow(const Config& config, QWidget* parent)
     setupUi();
     setupHardware();
     applyTheme(cfg.theme);
+    reportConfigProblems();
     if (cfg.slideshowEnabled)
         enterSlideshow();
     else
@@ -652,6 +653,16 @@ void MainWindow::shutdownSystem()
     proc->start("systemctl", {"poweroff"});
 }
 
+// Eine Datei mit Tippfehler wird stillschweigend uebersprungen. Auf dem
+// Bildschirm soll das nicht unbemerkt bleiben: die Datei in der Nextcloud wird
+// vom Handy aus bearbeitet, ohne Blick ins Protokoll.
+void MainWindow::reportConfigProblems()
+{
+    if (cfg.problems.isEmpty())
+        return;
+    showMessage(QString::fromUtf8("Konfiguration fehlerhaft: ") + cfg.problems.join(", "), 20000);
+}
+
 void MainWindow::reloadConfig()
 {
     if (settingsPanel->isVisible()) {
@@ -711,6 +722,7 @@ void MainWindow::reloadConfig()
     settingsPanel->setConfig(cfg);
     configWatcher->watch(cfg);   // neue Dateien koennen hinzugekommen sein
     layoutLayers();
+    reportConfigProblems();
     qInfo() << "Konfiguration neu geladen.";
 }
 

@@ -76,10 +76,17 @@ bool Config::applyFile(const QString& path, bool allowPaths)
     if (!f.open(QIODevice::ReadOnly))
         return false;
 
+    const QByteArray roh = f.readAll();
     QJsonParseError err;
-    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &err);
+    const QJsonDocument doc = QJsonDocument::fromJson(roh, &err);
     if (err.error != QJsonParseError::NoError || !doc.isObject()) {
-        qWarning() << "Konfiguration ungueltig, wird uebersprungen:" << path << err.errorString();
+        // Zeilennummer aus der Position im Text, das hilft beim Suchen.
+        const int zeile = roh.left(err.offset).count('\n') + 1;
+        const QString grund = err.error != QJsonParseError::NoError
+                                  ? QString("%1 (Zeile %2)").arg(err.errorString()).arg(zeile)
+                                  : QStringLiteral("kein JSON-Objekt");
+        qWarning() << "Konfiguration ungueltig, wird uebersprungen:" << path << grund;
+        problems << QString("%1: %2").arg(QFileInfo(path).fileName(), grund);
         return false;
     }
 
@@ -147,6 +154,7 @@ Config Config::load(const QString& path)
 Config Config::loadLayered(const QString& explicitPath)
 {
     Config c = defaults();
+    c.problems.clear();
 
     // 1. systemweit
     c.applyFile(systemPath(), true);

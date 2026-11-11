@@ -60,6 +60,10 @@ struct Config
     // Mit --config bzw. $FOTOBOX_CONFIG genannte Datei, fuer erneutes Laden
     QString explicitPath;
 
+    // Dateien, die nicht gelesen werden konnten, mit Grund und Zeile.
+    // Wird angezeigt, damit ein Tippfehler nicht unbemerkt bleibt.
+    QStringList problems;
+
     // Vollstaendiger Bildordner: basePath/yearPath/partyPath
     QString fullImagePath() const;
 

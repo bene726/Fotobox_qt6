@@ -83,6 +83,7 @@ private:
     void closeSettings();
     void saveSettings();
     void reloadConfig();                   // eine Konfigurationsdatei hat sich geaendert
+    void reportConfigProblems();           // Tippfehler sichtbar machen
     void shutdownSystem();
 
     void showOverlayImage(const QPixmap& pix);

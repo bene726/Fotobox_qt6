@@ -680,6 +680,11 @@ Sofort übernommen werden Link, Passwort, Eventname, Design, Zeiten, LED-Helligk
 QR-Code und der Bildordner. Die Wahl der Backends, die Pins und der PWM-Chip brauchen
 dagegen einen Neustart; die Fotobox schreibt in dem Fall einen Hinweis ins Protokoll.
 
+Ist eine Datei fehlerhaft, wird nur diese Ebene übersprungen, die übrigen gelten
+weiter. Die Fotobox zeigt den Grund samt Zeilennummer auf dem Bildschirm, zum
+Beispiel `fotobox.json: unterminated object (Zeile 5)`. Ein vergessenes
+Anführungszeichen bleibt so nicht unbemerkt.
+
 > Auch ein Ersetzen der Datei wird bemerkt, nicht nur das Beschreiben. Sync-Programme
 > und viele Editoren schreiben eine neue Datei und benennen sie um; wer nur die Datei
 > selbst beobachtet, verliert sie dabei.
@@ -733,7 +738,7 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 
 | Abschnitt | Feld | Bedeutung |
 |---|---|---|
-| SystemData | basePath, yearPath, partyPath | Bildordner = basePath/yearPath/partyPath (`~` erlaubt) |
+| SystemData | basePath, yearPath, partyPath | Bildordner = basePath/yearPath/partyPath (`~` erlaubt). Ohne `yearPath` nimmt die Fotobox das aktuelle Jahr |
 | SystemData | link, password | URL für den QR-Code und zugehöriges Passwort |
 | SystemData | eventConfigFile | Name der Nextcloud-Datei, Standard `fotobox.json` |
 | Behaviour | countdownSeconds | Countdown-Länge |
