@@ -92,14 +92,33 @@ bool LedPwm::setup(int chip, int channel)
     if (!QDir(dir).exists()) {
         QString err;
         if (!writeFile(base + "/export", QString::number(channel), &err)) {
-            qWarning() << "PWM-Kanal" << channel << "nicht zu aktivieren:" << err
-                       << "- gehoert der Benutzer zur Gruppe 'gpio'?";
-            return false;
+            // "Device or resource busy" heisst nur: schon exportiert.
+            if (!QDir(dir).exists()) {
+                qWarning() << "PWM-Kanal" << channel << "nicht zu aktivieren:" << err
+                           << "- gehoert der Benutzer zur Gruppe 'gpio'?";
+                return false;
+            }
         }
-        // udev legt die Dateien asynchron an und setzt die Rechte.
-        QElapsedTimer t; t.start();
-        while (!QFile::exists(dir + "/period") && t.elapsed() < 2000)
+    }
+
+    // Nach dem Exportieren legt der Kernel die Dateien an, die Rechte setzt
+    // aber udev, und zwar kurz danach. Wer nur auf das Vorhandensein wartet,
+    // schreibt in genau dieses Fenster hinein und scheitert.
+    {
+        QElapsedTimer t;
+        t.start();
+        forever {
+            const QFileInfo fi(dir + "/period");
+            if (fi.exists() && fi.isWritable())
+                break;
+            if (t.elapsed() > 3000) {
+                qWarning() << "PWM-Dateien in" << dir
+                           << (fi.exists() ? "sind nicht beschreibbar - Gruppe 'gpio' pruefen."
+                                           : "sind nicht aufgetaucht.");
+                return false;
+            }
             QThread::msleep(50);
+        }
     }
 
     m_periodNs = 1000000000L / m_frequencyHz;
