@@ -663,7 +663,7 @@ nur die Felder, die sie selbst enthält. Keine davon liegt im Repository.
 | # | Datei | Gedacht für | Wer ändert sie |
 |---|---|---|---|
 | 1 | `/etc/fotobox/config.json` | Hardware, Pfade, Backends | einmal beim Einrichten, per SSH |
-| 2 | `~/.config/fotobox/config.json` | was am Gerät eingestellt wird | die Fotobox selbst beim Speichern |
+| 2 | `~/.config/fotobox/config.json` | Design, LED, Countdown, Anzeigedauer, Diashow, QR-Code, Kamera | die Fotobox selbst beim Speichern |
 | 3 | Datei aus `--config` oder `$FOTOBOX_CONFIG` | Sonderfälle und Tests | von Hand |
 | 4 | `<basePath>/fotobox.json` | **Link, Passwort, Eventname** | du, vom Handy aus über Nextcloud |
 
@@ -727,6 +727,11 @@ Ebene ab.
 - **Link, Passwort, Eventname** in die Nextcloud-Datei.
 - **Design, LED-Helligkeit, Countdown** stellst du am Touchscreen ein, die Fotobox
   speichert sie selbst in Ebene 2.
+
+> „Speichern“ schreibt **nur** die am Gerät einstellbaren Werte. Link, Passwort,
+> Eventname und Pfade werden dabei nicht angefasst, sonst würden Werte aus der
+> Nextcloud-Datei in der persönlichen Ebene einfrieren und später, wenn man sie dort
+> entfernt, als alte Kopie weitergelten.
 
 > Steht ein Feld in der Nextcloud-Datei, gewinnt es immer. Eine Einstellung, die du am
 > Touchscreen änderst, wird dadurch beim nächsten Start wieder überschrieben. Deshalb

@@ -216,24 +216,20 @@ bool Config::save()
         in.close();
     }
 
-    QJsonObject sys = root.value("SystemData").toObject();
-    sys["basePath"]  = basePath;
-    sys["yearPath"]  = yearPath;
-    sys["partyPath"] = partyPath;
-    sys["partyname"] = partyname;
-    sys["link"]      = link;
-    sys["password"]  = password;
-    root["SystemData"] = sys;
-
+    // Geschrieben wird ausschliesslich, was sich am Geraet einstellen laesst.
+    //
+    // Frueher landete der gesamte wirksame Stand hier, also auch Werte aus der
+    // Nextcloud-Datei wie partyPath oder link. Die froren damit in der
+    // persoenlichen Ebene ein: wurden sie spaeter in der Nextcloud-Datei
+    // entfernt, galt weiter die alte Kopie. Was dort nicht hingehoert, wird
+    // auch nicht angefasst; von Hand Eingetragenes bleibt erhalten.
     QJsonObject beh = root.value("Behaviour").toObject();
-    beh["countdownSeconds"]    = countdownSeconds;
-    beh["slideshowIntervalMs"] = slideshowIntervalMs;
-    beh["photoDisplayMs"]      = photoDisplayMs;
-    beh["liveViewTimeoutMs"]   = liveViewTimeoutMs;
-    beh["slideshowEnabled"]    = slideshowEnabled;
-    beh["showQr"]              = showQr;
-    beh["qrSize"]              = qrSize;
-    beh["theme"]               = theme;
+    beh["theme"]             = theme;
+    beh["countdownSeconds"]  = countdownSeconds;
+    beh["photoDisplayMs"]    = photoDisplayMs;
+    beh["liveViewTimeoutMs"] = liveViewTimeoutMs;
+    beh["slideshowEnabled"]  = slideshowEnabled;
+    beh["showQr"]            = showQr;
     root["Behaviour"] = beh;
 
     QJsonObject hw = root.value("Hardware").toObject();
