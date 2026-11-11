@@ -48,6 +48,11 @@ TriggerGpio::TriggerGpio(const QString& chip, int line, const QString& pull, int
     , m_debounceMs(qMax(0, debounceMs))
 {
     QString path = (chip.isEmpty() || chip == "auto") ? findHeaderChip() : chip;
+    // Eine blosse Zahl ist als gpiochipN gemeint, nicht als /dev/N.
+    bool nurZiffern = false;
+    path.toInt(&nurZiffern);
+    if (nurZiffern)
+        path = "gpiochip" + path;
     if (!path.startsWith('/'))
         path = "/dev/" + path;
     if (path == "/dev/") {
