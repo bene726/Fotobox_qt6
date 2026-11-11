@@ -157,6 +157,8 @@ Zwei Verbraucher: der Auslöse-Taster und das PWM-Signal für die LED-Beleuchtun
 Beide Vorschläge liegen **direkt neben einem GND-Pin in derselben Reihe**, es genügt
 also je ein zweipoliger Stecker.
 
+![Anschlüsse am 40-poligen Header](docs/pinout.svg)
+
 | Funktion | GPIO (BCM) | Header-Pin | GND daneben | Warum |
 |---|---|---|---|---|
 | Auslöse-Taster | **17** | 11 | Pin 9 | frei, keine Sonderfunktion, kein Bus |

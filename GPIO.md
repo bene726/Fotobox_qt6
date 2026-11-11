@@ -16,6 +16,15 @@ Die Fotobox nutzt zwei GPIO-Funktionen:
 
 ---
 
+## Anschlussplan
+
+![Anschlüsse am 40-poligen Header](docs/pinout.svg)
+
+Erzeugt von [docs/make_pinout.py](docs/make_pinout.py). Ändert sich die
+Verdrahtung, dort anpassen und neu erzeugen.
+
+---
+
 ## Taster
 
 ### Verhalten
