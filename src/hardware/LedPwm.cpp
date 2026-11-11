@@ -29,24 +29,39 @@ int LedPwm::findChip(int channel)
     // protokolliert, damit die Wahl nachvollziehbar ist und notfalls per
     // "ledPwmChip" festgelegt werden kann.
     const QStringList chips = QDir("/sys/class/pwm").entryList({"pwmchip*"}, QDir::Dirs, QDir::Name);
-    int chosen = -1;
+
+    // Auf dem Pi 5 gibt es mehrere: der Hardware-Block des RP1 (oft fuer den
+    // Luefter) und der vom Overlay pwm-pio angelegte. Gesucht ist der zweite,
+    // sonst wuerde die Fotobox am falschen Geraet drehen.
+    int ersterPassender = -1, pio = -1;
+    QStringList zeilen;
     for (const QString& c : chips) {
         QFile f("/sys/class/pwm/" + c + "/npwm");
         if (!f.open(QIODevice::ReadOnly))
             continue;
         const int n = f.readAll().trimmed().toInt();
-        const QString target = QFileInfo("/sys/class/pwm/" + c + "/device").symLinkTarget();
+        const QString geraet =
+            QFileInfo(QFileInfo("/sys/class/pwm/" + c + "/device").symLinkTarget()).fileName();
         const int num = QStringView{c}.mid(7).toInt();   // "pwmchip" ist 7 Zeichen
-        const bool usable = n > channel;
-        if (usable && chosen < 0)
-            chosen = num;
-        qInfo().noquote() << QString("  %1: %2 Kanaele, %3%4")
-                                 .arg(c).arg(n)
-                                 .arg(target.isEmpty() ? QString("?") : QFileInfo(target).fileName())
-                                 .arg(usable && num == chosen ? "   <- gewaehlt" : "");
+        if (n > channel) {
+            if (ersterPassender < 0)
+                ersterPassender = num;
+            if (pio < 0 && geraet.contains("pwm_pio"))
+                pio = num;
+        }
+        zeilen << QString("  %1: %2 Kanaele, %3").arg(c).arg(n).arg(geraet.isEmpty() ? "?" : geraet);
+    }
+
+    const int chosen = pio >= 0 ? pio : ersterPassender;
+    for (int i = 0; i < zeilen.size(); ++i) {
+        const bool gewaehlt = zeilen.at(i).startsWith(QString("  pwmchip%1:").arg(chosen));
+        qInfo().noquote() << zeilen.at(i) + (gewaehlt ? "   <- gewaehlt" : "");
     }
     if (chips.isEmpty())
         qWarning() << "Unter /sys/class/pwm liegt nichts. Fehlt der dtoverlay-Eintrag?";
+    else if (chosen >= 0 && pio < 0)
+        qInfo() << "Kein pwm_pio-Geraet gefunden. Passt der gewaehlte Chip nicht,"
+                << "mit \"ledPwmChip\" festlegen.";
     return chosen;
 }
 

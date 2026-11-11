@@ -145,6 +145,24 @@ cat /sys/class/pwm/pwmchip0/npwm
 - Helligkeit 0–100 % als Einschaltdauer, einstellbar im Menü der Anwendung
 - Beim Beenden wird die LED ausgeschaltet
 
+### Mehrere PWM-Chips
+
+Auf dem Pi 5 liegen in der Regel zwei Chips nebeneinander:
+
+| Chip | Gerät | Bedeutung |
+|---|---|---|
+| `pwmchip0` | `1f0009c000.pwm` | Hardware-Block des RP1, oft für den Lüfter |
+| `pwmchip1` | `pwm_pio@c` | vom Overlay `pwm-pio` angelegt, **der richtige** |
+
+Die Fotobox bevorzugt automatisch den `pwm_pio`-Chip und protokolliert beim Start
+alle gefundenen. Greift sie daneben, legt `"ledPwmChip"` den richtigen fest.
+
+```bash
+ls -l /sys/class/pwm/        # zeigt, welcher Chip zu welchem Gerät gehört
+```
+
+---
+
 ### Rechte
 Der Benutzer muss in der Gruppe `gpio` sein, sonst sind weder `/dev/gpiochip*`
 noch `/sys/class/pwm` beschreibbar:

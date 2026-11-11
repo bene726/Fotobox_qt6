@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QSocketNotifier>
+#include <QTimer>
 
 #ifdef __linux__
 #include <cerrno>
@@ -127,16 +128,38 @@ TriggerGpio::~TriggerGpio()
 
 void TriggerGpio::onEvent()
 {
-    // Alle anstehenden Ereignisse abholen, sonst meldet sich der Notifier erneut.
+    // Anstehende Ereignisse abholen, aber begrenzt. Eine Leitung, die staendig
+    // wackelt, wuerde die Schleife sonst nie verlassen und die Oberflaeche
+    // einfrieren lassen. Der Rest wird beim naechsten Durchlauf geholt.
     gpio_v2_line_event ev{};
     int handled = 0;
-    while (::read(m_fd, &ev, sizeof(ev)) == sizeof(ev))
+    while (handled < 32 && ::read(m_fd, &ev, sizeof(ev)) == sizeof(ev))
         handled++;
 
     if (handled == 0)
         return;
 
     const qint64 now = QDateTime::currentMSecsSinceEpoch();
+
+    // Flankensturm: lieber kurz taub stellen als unbedienbar werden.
+    if (now - m_burstStart > 1000) {
+        m_burstStart = now;
+        m_burst = 0;
+    }
+    m_burst += handled;
+    if (m_burst > 200) {
+        qWarning() << "Mehr als" << m_burst << "Flanken je Sekunde an der Taster-Leitung."
+                   << "Verkabelung pruefen. Eingang wird 2 s stummgeschaltet.";
+        if (m_notifier)
+            m_notifier->setEnabled(false);
+        QTimer::singleShot(2000, this, [this] {
+            m_burst = 0;
+            m_burstStart = 0;
+            if (m_notifier)
+                m_notifier->setEnabled(true);
+        });
+        return;
+    }
     if (m_softwareDebounce && m_debounceMs > 0 && now - m_lastEventMs < m_debounceMs)
         return;
     m_lastEventMs = now;

@@ -132,7 +132,8 @@ int GpioScan::run(bool watch)
         const int line = w.line;
         QObject::connect(n, &QSocketNotifier::activated, qApp, [line, fd = w.fd]() {
             gpio_v2_line_event ev{};
-            while (::read(fd, &ev, sizeof(ev)) == sizeof(ev)) {
+            int n = 0;
+            while (n++ < 32 && ::read(fd, &ev, sizeof(ev)) == sizeof(ev)) {
                 const char* kind = (ev.id == GPIO_V2_LINE_EVENT_FALLING_EDGE)
                                        ? "fallend (gedrueckt)" : "steigend (losgelassen)";
                 out() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")

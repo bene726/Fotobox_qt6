@@ -36,4 +36,8 @@ private:
     bool m_softwareDebounce = false;     // falls der Kernel kein Entprellen kann
     int m_debounceMs = 30;
     qint64 m_lastEventMs = 0;
+
+    // Schutz gegen eine dauernd wackelnde Leitung
+    int m_burst = 0;
+    qint64 m_burstStart = 0;
 };
