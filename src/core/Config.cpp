@@ -160,6 +160,7 @@ Config Config::loadLayered(const QString& explicitPath)
     QString explicitly = explicitPath;
     if (explicitly.isEmpty())
         explicitly = qEnvironmentVariable("FOTOBOX_CONFIG");
+    c.explicitPath = explicitly;
     if (!explicitly.isEmpty()) {
         if (c.applyFile(explicitly, true))
             c.sourcePath = explicitly;

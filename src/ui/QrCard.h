@@ -14,6 +14,7 @@ public:
     QrCard(const QString& link, const QString& password, int qrSize, QWidget* parent = nullptr);
 
     void applyTheme(const Theme& theme);
+    void setContent(const QString& link, const QString& password, int qrSize);
 
 private:
     QHBoxLayout* m_layout = nullptr;

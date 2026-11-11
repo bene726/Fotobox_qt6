@@ -53,6 +53,18 @@ QrCard::QrCard(const QString& link, const QString& password, int qrSize, QWidget
     m_layout->addWidget(m_qr);
 }
 
+void QrCard::setContent(const QString& link, const QString& password, int qrSize)
+{
+    m_qr->setFixedSize(qrSize, qrSize);
+    m_qr->setText(link);
+    m_link->setText(link);
+    m_password->setText(password);
+    const bool hat = !password.isEmpty();
+    m_passwordLabel->setVisible(hat);
+    m_password->setVisible(hat);
+    adjustSize();
+}
+
 void QrCard::applyTheme(const Theme& theme)
 {
     m_title->setText(theme.qrTitle);

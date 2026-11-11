@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 
+#include "core/ConfigWatcher.h"
 #include "core/FileWatcher.h"
 #include "hardware/Camera.h"
 #include "hardware/HardwareFactory.h"
@@ -204,6 +205,13 @@ void MainWindow::setupHardware()
 
     watcher = new FileWatcher(imagePath, this);
     connect(watcher, &FileWatcher::newFile, this, &MainWindow::onNewFile);
+
+    // Aenderungen an den Konfigurationsdateien sofort uebernehmen. Gedacht
+    // vor allem fuer die Datei in der Nextcloud: Link und Passwort lassen
+    // sich damit vom Handy aus aendern, ohne die Fotobox anzufassen.
+    configWatcher = new ConfigWatcher(this);
+    connect(configWatcher, &ConfigWatcher::changed, this, &MainWindow::reloadConfig);
+    configWatcher->watch(cfg);
 }
 
 void MainWindow::applyTheme(const QString& id)
@@ -605,6 +613,9 @@ void MainWindow::closeSettings()
 
 void MainWindow::saveSettings()
 {
+    // Das eigene Schreiben soll kein erneutes Laden ausloesen.
+    if (configWatcher)
+        configWatcher->pause(2500);
     if (cfg.save())
         showMessage("Einstellungen gespeichert", 2000);
     else
@@ -639,6 +650,68 @@ void MainWindow::shutdownSystem()
         }
     });
     proc->start("systemctl", {"poweroff"});
+}
+
+void MainWindow::reloadConfig()
+{
+    if (settingsPanel->isVisible()) {
+        qInfo() << "Konfiguration geaendert, wird nach dem Schliessen der Einstellungen geladen.";
+        configReloadPending = true;
+        return;
+    }
+    configReloadPending = false;
+
+    const Config alt = cfg;
+    Config neu = Config::loadLayered(cfg.explicitPath);
+    if (neu.loadedFrom.isEmpty() && !alt.loadedFrom.isEmpty()) {
+        qWarning() << "Konfiguration verschwunden, der bisherige Stand bleibt aktiv.";
+        return;
+    }
+    cfg = neu;
+
+    // Backends lassen sich nicht im Betrieb tauschen.
+    if (neu.cameraBackend != alt.cameraBackend || neu.liveViewBackend != alt.liveViewBackend
+        || neu.triggerBackend != alt.triggerBackend || neu.ledBackend != alt.ledBackend
+        || neu.gpioLine != alt.gpioLine || neu.ledPwmChip != alt.ledPwmChip)
+        qWarning() << "Geaenderte Hardware-Einstellungen wirken erst nach einem Neustart.";
+
+    // Zeiten
+    slideshowTimer.setInterval(cfg.slideshowIntervalMs);
+    photoTimer.setInterval(cfg.photoDisplayMs);
+    liveViewTimeoutTimer.setInterval(cfg.liveViewTimeoutMs);
+
+    if (led && neu.ledBrightness != alt.ledBrightness)
+        led->setBrightness(neu.ledBrightness);
+
+    // QR-Karte: Link, Passwort, Groesse
+    qrCard->setContent(cfg.link, cfg.password, cfg.qrSize);
+    qrCard->setVisible(cfg.showQr);
+    qrShadow->setVisible(cfg.showQr && theme.hardShadow);
+
+    if (neu.theme != alt.theme)
+        applyTheme(neu.theme);
+
+    // Anderer Bildordner: neu beobachten und die Fotoshow neu fuellen
+    const QString neuerPfad = cfg.fullImagePath();
+    if (neuerPfad != imagePath) {
+        qInfo() << "Bildordner gewechselt:" << imagePath << "->" << neuerPfad;
+        imagePath = neuerPfad;
+        delete watcher;
+        watcher = new FileWatcher(imagePath, this);
+        connect(watcher, &FileWatcher::newFile, this, &MainWindow::onNewFile);
+        slideSource = QPixmap();
+        slidesBefore.clear();
+        if (state == State::Slideshow)
+            enterSlideshow();
+    }
+
+    if (!cfg.slideshowEnabled && state == State::Slideshow)
+        enterLiveView();
+
+    settingsPanel->setConfig(cfg);
+    configWatcher->watch(cfg);   // neue Dateien koennen hinzugekommen sein
+    layoutLayers();
+    qInfo() << "Konfiguration neu geladen.";
 }
 
 // ---------------------------------------------------------------- Ereignisse

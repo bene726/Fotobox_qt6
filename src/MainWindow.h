@@ -17,6 +17,7 @@ class FileWatcher;
 class LiveViewCamera;
 class TouchInput;
 class LedController;
+class ConfigWatcher;
 class SettingsPanel;
 class QToolButton;
 class QPushButton;
@@ -81,6 +82,7 @@ private:
     void openSettings();
     void closeSettings();
     void saveSettings();
+    void reloadConfig();                   // eine Konfigurationsdatei hat sich geaendert
     void shutdownSystem();
 
     void showOverlayImage(const QPixmap& pix);
@@ -135,5 +137,7 @@ private:
     Trigger* trigger = nullptr;
     TouchInput* touch = nullptr;
     FileWatcher* watcher = nullptr;
+    ConfigWatcher* configWatcher = nullptr;
+    bool configReloadPending = false;      // Aenderung kam, waehrend die Einstellungen offen waren
     LedController* led = nullptr;
 };

@@ -57,6 +57,9 @@ struct Config
     // Alle tatsaechlich gelesenen Dateien, in der Reihenfolge der Anwendung
     QStringList loadedFrom;
 
+    // Mit --config bzw. $FOTOBOX_CONFIG genannte Datei, fuer erneutes Laden
+    QString explicitPath;
+
     // Vollstaendiger Bildordner: basePath/yearPath/partyPath
     QString fullImagePath() const;
 

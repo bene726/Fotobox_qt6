@@ -670,6 +670,20 @@ nur die Felder, die sie selbst enthält. Keine davon liegt im Repository.
 Die letzte Ebene liegt im Nextcloud-Ordner und wird dorthin synchronisiert. Damit
 änderst du den QR-Link und das Passwort für das nächste Fest, ohne den Pi anzufassen.
 
+### Änderungen wirken sofort
+
+Die Fotobox beobachtet alle vier Dateien und übernimmt Änderungen im laufenden
+Betrieb, ohne Neustart. Gedacht vor allem für die Datei in der Nextcloud: Link und
+Passwort lassen sich damit vom Handy aus ändern, während die Box läuft.
+
+Sofort übernommen werden Link, Passwort, Eventname, Design, Zeiten, LED-Helligkeit,
+QR-Code und der Bildordner. Die Wahl der Backends, die Pins und der PWM-Chip brauchen
+dagegen einen Neustart; die Fotobox schreibt in dem Fall einen Hinweis ins Protokoll.
+
+> Auch ein Ersetzen der Datei wird bemerkt, nicht nur das Beschreiben. Sync-Programme
+> und viele Editoren schreiben eine neue Datei und benennen sie um; wer nur die Datei
+> selbst beobachtet, verliert sie dabei.
+
 Welcher Wert am Ende gilt und woher er kommt, zeigt:
 
 ```bash
