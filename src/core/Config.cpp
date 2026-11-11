@@ -24,7 +24,9 @@ Config Config::defaults()
     c.basePath  = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/Fotobox";
     c.yearPath  = QString::number(QDate::currentDate().year());
     c.partyPath = "Test_Event";
-    c.partyname = "Test_Event";
+    // Absichtlich leer: der Name steht auf der QR-Karte, dort soll ohne eigene
+    // Angabe lieber nichts stehen als ein Platzhalter.
+    c.partyname.clear();
     c.link      = "https://example.com";
     return c;
 }
@@ -99,9 +101,10 @@ bool Config::applyFile(const QString& path, bool allowPaths)
         c.basePath = sys.value("basePath").toString(c.basePath);
     c.yearPath  = sys.value("yearPath").toString(c.yearPath);
     c.partyPath = sys.value("partyPath").toString(c.partyPath);
-    c.partyname = sys.value("partyname").toString(c.partyname);
-    c.link      = sys.value("link").toString(c.link);
-    c.password  = sys.value("password").toString(c.password);
+    // Beim Tippen am Handy rutscht leicht ein Leerzeichen an den Rand.
+    c.partyname = sys.value("partyname").toString(c.partyname).trimmed();
+    c.link      = sys.value("link").toString(c.link).trimmed();
+    c.password  = sys.value("password").toString(c.password).trimmed();
     c.eventConfigFile = sys.value("eventConfigFile").toString(c.eventConfigFile);
 
     const QJsonObject beh = root.value("Behaviour").toObject();

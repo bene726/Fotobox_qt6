@@ -132,7 +132,7 @@ QString Theme::qrCardStyle() const
         "#qrCard { background-color: %1; border: %2px solid %3; border-radius: %4px; }"
         "QLabel { background: transparent; border: none; }"
         "QLabel#qrTitle { color: %5; font-family: \"%6\"; font-size: %16px; %7 }"
-        "QLabel#qrLink { color: %8; font-family: \"%9\"; font-size: 14px; }"
+        "QLabel#qrSubtitle { color: %8; font-family: \"%9\"; font-size: 17px; }"
         "QLabel#qrPasswordLabel { color: %8; font-family: \"%9\"; font-size: 11px; letter-spacing: 2px; }"
         "QLabel#qrPassword { color: %10; background-color: %11; border: %12px solid %13;"
         "  border-radius: %14px; padding: 4px 8px; font-family: \"%15\"; font-size: 15px; font-weight: bold; }")

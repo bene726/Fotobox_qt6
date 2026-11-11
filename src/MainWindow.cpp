@@ -83,7 +83,7 @@ void MainWindow::setupUi()
     qrShadow = new QWidget(central);
     qrShadow->setAttribute(Qt::WA_StyledBackground, true);
     qrShadow->setAttribute(Qt::WA_TransparentForMouseEvents);
-    qrCard = new QrCard(cfg.link, cfg.password, cfg.qrSize, central);
+    qrCard = new QrCard(cfg.link, cfg.partyname, cfg.password, cfg.qrSize, central);
     qrShadow->setVisible(cfg.showQr);
     qrCard->setVisible(cfg.showQr);
 
@@ -695,7 +695,7 @@ void MainWindow::reloadConfig()
         led->setBrightness(neu.ledBrightness);
 
     // QR-Karte: Link, Passwort, Groesse
-    qrCard->setContent(cfg.link, cfg.password, cfg.qrSize);
+    qrCard->setContent(cfg.link, cfg.partyname, cfg.password, cfg.qrSize);
     qrCard->setVisible(cfg.showQr);
     qrShadow->setVisible(cfg.showQr && theme.hardShadow);
 

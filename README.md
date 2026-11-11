@@ -38,7 +38,7 @@ Die Fotobox kombiniert:
 - Anzeige des Fotos nach der Aufnahme
 - Danach **3 Minuten Livebild**
 - Automatischer Rücksprung zur Slideshow
-- QR-Code für Nextcloud-Galerie
+- QR-Code für die Nextcloud-Galerie, daneben Eventname und Passwort
 - Saubere Trennung von UI, Hardware und Logik
 
 ---
@@ -740,6 +740,7 @@ Alle Felder sind optional, siehe [Config.example.json](Config.example.json).
 |---|---|---|
 | SystemData | basePath, yearPath, partyPath | Bildordner = basePath/yearPath/partyPath (`~` erlaubt). Ohne `yearPath` nimmt die Fotobox das aktuelle Jahr |
 | SystemData | link, password | URL für den QR-Code und zugehöriges Passwort |
+| SystemData | partyname | steht auf der QR-Karte; ohne Angabe bleibt die Zeile leer |
 | SystemData | eventConfigFile | Name der Nextcloud-Datei, Standard `fotobox.json` |
 | Behaviour | countdownSeconds | Countdown-Länge |
 | Behaviour | slideshowIntervalMs, photoDisplayMs, liveViewTimeoutMs | Zeiten in ms |

@@ -7,7 +7,8 @@
 #include <QStyle>
 #include <QVBoxLayout>
 
-QrCard::QrCard(const QString& link, const QString& password, int qrSize, QWidget* parent)
+QrCard::QrCard(const QString& link, const QString& partyname, const QString& password,
+               int qrSize, QWidget* parent)
     : QWidget(parent)
 {
     setObjectName("qrCard");
@@ -24,8 +25,8 @@ QrCard::QrCard(const QString& link, const QString& password, int qrSize, QWidget
 
     m_title = new QLabel(m_textBox);
     m_title->setObjectName("qrTitle");
-    m_link = new QLabel(link, m_textBox);
-    m_link->setObjectName("qrLink");
+    m_subtitle = new QLabel(m_textBox);
+    m_subtitle->setObjectName("qrSubtitle");
 
     auto* pwRow = new QHBoxLayout;
     pwRow->setContentsMargins(0, 0, 0, 0);
@@ -39,12 +40,10 @@ QrCard::QrCard(const QString& link, const QString& password, int qrSize, QWidget
     pwRow->addStretch();
 
     v->addWidget(m_title);
-    v->addWidget(m_link);
+    v->addWidget(m_subtitle);
     v->addLayout(pwRow);
 
-    const bool hasPassword = !password.isEmpty();
-    m_passwordLabel->setVisible(hasPassword);
-    m_password->setVisible(hasPassword);
+    setContent(link, partyname, password, qrSize);
 
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(16, 14, 16, 14);
@@ -53,11 +52,15 @@ QrCard::QrCard(const QString& link, const QString& password, int qrSize, QWidget
     m_layout->addWidget(m_qr);
 }
 
-void QrCard::setContent(const QString& link, const QString& password, int qrSize)
+void QrCard::setContent(const QString& link, const QString& partyname, const QString& password,
+                        int qrSize)
 {
     m_qr->setFixedSize(qrSize, qrSize);
-    m_qr->setText(link);
-    m_link->setText(link);
+    m_qr->setText(link);                 // der Link steckt nur hier drin
+
+    m_subtitle->setText(partyname);
+    m_subtitle->setVisible(!partyname.isEmpty());
+
     m_password->setText(password);
     const bool hat = !password.isEmpty();
     m_passwordLabel->setVisible(hat);
