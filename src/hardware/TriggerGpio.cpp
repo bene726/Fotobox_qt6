@@ -18,6 +18,13 @@
 
 #ifdef __linux__
 
+namespace {
+// Ab so vielen Flanken je Sekunde war es kein Finger mehr.
+constexpr int kBurstPerSecond = 2000;
+// So lange nach einem gemeldeten Druck gilt alles als Prellen.
+constexpr int kMinLockoutMs = 400;
+} // namespace
+
 QString TriggerGpio::findHeaderChip()
 {
     // Der Chip mit den Header-Pins heisst auf dem Pi 4 "pinctrl-bcm2711" und
@@ -46,6 +53,7 @@ TriggerGpio::TriggerGpio(const QString& chip, int line, const QString& pull, int
                          QObject* parent)
     : Trigger(parent)
     , m_debounceMs(qMax(0, debounceMs))
+    , m_lockoutMs(qMax(kMinLockoutMs, qMax(0, debounceMs)))
 {
     QString path = (chip.isEmpty() || chip == "auto") ? findHeaderChip() : chip;
     // Eine blosse Zahl ist als gpiochipN gemeint, nicht als /dev/N.
@@ -114,6 +122,20 @@ TriggerGpio::TriggerGpio(const QString& chip, int line, const QString& pull, int
     ::close(chipFd);
 
     m_fd = req.fd;
+
+    // Entscheidend: der Ereignis-Deskriptor ist von Haus aus blockierend.
+    // Die Leseschleife unten holt Ereignisse, bis keines mehr da ist; genau
+    // dann wuerde read() warten statt zurueckzukehren und die Oberflaeche
+    // einfrieren. Ein einziger Tastendruck genuegt dafuer.
+    const int flags = ::fcntl(m_fd, F_GETFL, 0);
+    if (flags < 0 || ::fcntl(m_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        qWarning() << "GPIO-Leitung nicht auf nicht-blockierend umstellbar:" << ::strerror(errno)
+                   << "- der Taster bleibt deaktiviert, sonst friert die Anzeige ein.";
+        ::close(m_fd);
+        m_fd = -1;
+        return;
+    }
+
     m_notifier = new QSocketNotifier(m_fd, QSocketNotifier::Read, this);
     connect(m_notifier, &QSocketNotifier::activated, this, &TriggerGpio::onEvent);
 
@@ -133,9 +155,10 @@ TriggerGpio::~TriggerGpio()
 
 void TriggerGpio::onEvent()
 {
-    // Anstehende Ereignisse abholen, aber begrenzt. Eine Leitung, die staendig
-    // wackelt, wuerde die Schleife sonst nie verlassen und die Oberflaeche
-    // einfrieren lassen. Der Rest wird beim naechsten Durchlauf geholt.
+    // Anstehende Ereignisse abholen. Der Deskriptor ist nicht-blockierend, der
+    // letzte Leseversuch liefert daher einen Fehler statt zu warten. Zusaetzlich
+    // begrenzt, damit eine staendig wackelnde Leitung die Schleife nicht
+    // beliebig lange beschaeftigt; der Rest folgt beim naechsten Durchlauf.
     gpio_v2_line_event ev{};
     int handled = 0;
     while (handled < 32 && ::read(m_fd, &ev, sizeof(ev)) == sizeof(ev))
@@ -146,15 +169,22 @@ void TriggerGpio::onEvent()
 
     const qint64 now = QDateTime::currentMSecsSinceEpoch();
 
-    // Flankensturm: lieber kurz taub stellen als unbedienbar werden.
+    // Flankensturm: lieber kurz taub stellen als unbedienbar werden. Gezaehlt
+    // werden alle Flanken, auch die aus dem Nachlauf unten; ein Finger bringt
+    // selbst an einem schlecht entprellten Taster keine tausend pro Sekunde
+    // zusammen, eine einstreuende oder scheuernde Leitung schon.
     if (now - m_burstStart > 1000) {
         m_burstStart = now;
         m_burst = 0;
     }
     m_burst += handled;
-    if (m_burst > 200) {
-        qWarning() << "Mehr als" << m_burst << "Flanken je Sekunde an der Taster-Leitung."
-                   << "Verkabelung pruefen. Eingang wird 2 s stummgeschaltet.";
+    if (m_burst > kBurstPerSecond) {
+        // Nur gelegentlich melden, sonst besteht das Log aus dieser Zeile.
+        if (now - m_lastBurstWarnMs > 30000) {
+            qWarning() << "Mehr als" << m_burst << "Flanken je Sekunde an der Taster-Leitung."
+                       << "Verkabelung pruefen. Eingang wird 2 s stummgeschaltet.";
+            m_lastBurstWarnMs = now;
+        }
         if (m_notifier)
             m_notifier->setEnabled(false);
         QTimer::singleShot(2000, this, [this] {
@@ -165,9 +195,30 @@ void TriggerGpio::onEvent()
         });
         return;
     }
+
+    // Nachlauf eines Tastendrucks. Die Kontakte prellen, und auf einem langen
+    // Kabel kommen dabei leicht einige hundert Flanken zusammen - gemessen mit
+    // --gpio-watch. Sie gehoeren zum schon gemeldeten Druck und werden nur noch
+    // weggelesen, damit nicht gleich die naechste Aufnahme startet.
+    if (m_lastTriggerMs > 0 && now - m_lastTriggerMs < m_lockoutMs) {
+        m_swallowed += handled;
+        return;
+    }
+
     if (m_softwareDebounce && m_debounceMs > 0 && now - m_lastEventMs < m_debounceMs)
         return;
     m_lastEventMs = now;
+
+    m_lastTriggerMs = now;
+    m_swallowed = 0;
+    // Hilft beim Beurteilen der Verkabelung, ohne das Log zu fluten: eine
+    // Zeile je Tastendruck, und nur wenn es auffaellig viel war.
+    QTimer::singleShot(m_lockoutMs, this, [this] {
+        if (m_swallowed > 50)
+            qInfo() << "Taster prellt:" << m_swallowed << "Flanken innerhalb von"
+                    << m_lockoutMs << "ms nach dem Druck unterdrueckt.";
+        m_swallowed = 0;
+    });
 
     emit triggered();
 }

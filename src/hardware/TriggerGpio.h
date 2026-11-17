@@ -37,7 +37,14 @@ private:
     int m_debounceMs = 30;
     qint64 m_lastEventMs = 0;
 
+    // Nachlauf: ein mechanischer Taster prellt nach dem Druck noch nach.
+    // Diese Flanken gehoeren zum bereits gemeldeten Druck.
+    int m_lockoutMs = 400;
+    qint64 m_lastTriggerMs = 0;
+    int m_swallowed = 0;
+
     // Schutz gegen eine dauernd wackelnde Leitung
     int m_burst = 0;
     qint64 m_burstStart = 0;
+    qint64 m_lastBurstWarnMs = 0;
 };

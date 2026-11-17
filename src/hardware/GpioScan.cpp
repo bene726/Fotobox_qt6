@@ -113,6 +113,12 @@ int GpioScan::run(bool watch)
                            | GPIO_V2_LINE_FLAG_EDGE_FALLING | GPIO_V2_LINE_FLAG_EDGE_RISING;
         if (::ioctl(chipFd, GPIO_V2_GET_LINE_IOCTL, &req) < 0)
             continue;
+        // Nicht-blockierend, sonst wartet der letzte Leseversuch (siehe TriggerGpio).
+        const int flags = ::fcntl(req.fd, F_GETFL, 0);
+        if (flags < 0 || ::fcntl(req.fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+            ::close(req.fd);
+            continue;
+        }
         watched->append({req.fd, line});
     }
     ::close(chipFd);
