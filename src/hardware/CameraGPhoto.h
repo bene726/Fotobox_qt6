@@ -1,6 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include <QProcess>
+#include <QTimer>
 
 // DSLR ueber das Kommandozeilen-Tool gphoto2.
 // Laeuft als eigener Prozess, blockiert das UI nicht.
@@ -22,4 +23,9 @@ private:
     QString m_file;
     QProcess m_proc;
     bool m_busy = false;
+
+    // Antwortet die Kamera gar nicht, haengt die Fotobox sonst fuer immer.
+    // Eine Aufnahme dauert normal rund drei Sekunden.
+    static constexpr int kTimeoutMs = 25000;
+    QTimer m_timeout;
 };

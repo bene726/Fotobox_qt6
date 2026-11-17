@@ -55,6 +55,8 @@ QString friendlyError(const QString& raw)
                                  "oder Objektiv auf manuellen Fokus stellen.");
     if (r.contains("no space") || r.contains("store_full") || r.contains("card full"))
         return QString::fromUtf8("Speicherkarte der Kamera ist voll.");
+    if (r.contains("antwortet nicht"))
+        return QString::fromUtf8("Kamera antwortet nicht. Kabel prüfen, Kamera aus- und einschalten.");
     if (r.contains("timeout") || r.contains("i/o error"))
         return QString::fromUtf8("Verbindung zur Kamera gestört. Kabel prüfen.");
     return raw;
@@ -74,6 +76,19 @@ CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
 
     connect(&m_proc, &QProcess::finished, this, &CameraGPhoto::onFinished);
     connect(&m_proc, &QProcess::errorOccurred, this, &CameraGPhoto::onError);
+
+    // Notbremse: ohne sie bliebe die Fotobox stehen, wenn gphoto2 nicht antwortet.
+    m_timeout.setSingleShot(true);
+    m_timeout.setInterval(kTimeoutMs);
+    connect(&m_timeout, &QTimer::timeout, this, [this] {
+        if (!m_busy)
+            return;
+        qWarning() << "gphoto2 antwortet seit" << kTimeoutMs / 1000 << "s nicht, wird beendet.";
+        // Erst melden, dann abbrechen: sonst kommt onFinished mit dem
+        // Abbruchcode zuvor und die Meldung waere "Exit-Code 9".
+        fail(QString::fromUtf8("Kamera antwortet nicht"));
+        m_proc.kill();
+    });
 
 #ifdef __linux__
     if (gvfsGphotoRunning()) {
@@ -107,6 +122,7 @@ void CameraGPhoto::capture(const QString& targetDir)
     m_busy = true;
 
     qInfo() << "gphoto2 Aufnahme nach" << m_file;
+    m_timeout.start();
     m_proc.start(m_binary, {"--capture-image-and-download",
                             "--filename", m_file,
                             "--force-overwrite"});
@@ -117,6 +133,7 @@ void CameraGPhoto::fail(const QString& msg)
     if (!m_busy)
         return;
     m_busy = false;
+    m_timeout.stop();
     qWarning() << "gphoto2:" << msg;          // Originalmeldung ins Log
     emit captureFailed(friendlyError(msg));   // verstaendlicher Text aufs Display
 }
@@ -130,6 +147,7 @@ void CameraGPhoto::onError(QProcess::ProcessError error)
 
 void CameraGPhoto::onFinished(int exitCode, QProcess::ExitStatus status)
 {
+    m_timeout.stop();
     if (status != QProcess::NormalExit || exitCode != 0) {
         QString err = QString::fromUtf8(m_proc.readAllStandardError()).trimmed();
         if (err.isEmpty())
