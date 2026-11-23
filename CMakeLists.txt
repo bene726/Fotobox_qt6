@@ -22,6 +22,7 @@ qt_add_executable(fotobox
     src/core/Config.cpp
     src/core/ConfigWatcher.cpp
     src/core/FileWatcher.cpp
+    src/core/SystemdWatchdog.cpp
 
     src/hardware/HardwareFactory.cpp
     src/hardware/Camera.cpp

@@ -25,6 +25,16 @@ Type=simple
 ExecStart=/usr/bin/fotobox
 Restart=on-failure
 RestartSec=5
+# Die Anwendung meldet sich aus ihrem Eventloop. Bleibt die Meldung aus, haengt
+# der Eventloop: der Prozess lebt dann noch, zeigt aber ein eingefrorenes Bild.
+# Ohne diesen Eintrag faellt das dem Dienst nicht auf, denn ein Einfrieren ist
+# kein Absturz. systemd beendet den Dienst dann mit SIGABRT, was als Fehlschlag
+# zaehlt und ueber Restart=on-failure zum Neustart fuehrt.
+#
+# 30 s sind reichlich fuer den Start samt Kamera; die Anwendung meldet sich
+# alle 10 s. Der Wert steht der Anwendung in WATCHDOG_USEC zur Verfuegung, sie
+# richtet ihren Takt danach.
+WatchdogSec=30
 
 [Install]
 WantedBy=graphical-session.target

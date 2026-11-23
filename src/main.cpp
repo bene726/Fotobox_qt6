@@ -5,6 +5,7 @@
 
 #include "MainWindow.h"
 #include "core/Config.h"
+#include "core/SystemdWatchdog.h"
 #include "hardware/CameraScan.h"
 #include "hardware/GpioScan.h"
 #include "ui/Theme.h"
@@ -162,6 +163,11 @@ int main(int argc, char* argv[])
     }
 
     QApplication app(argc, argv);
+
+    // Moeglichst frueh: bei Type=simple laeuft das Watchdog-Fenster ab dem
+    // Start des Dienstes, also schon waehrend Konfiguration und Oberflaeche
+    // aufgebaut werden. Der Konstruktor setzt sofort ein erstes Lebenszeichen.
+    SystemdWatchdog watchdog(&app);
 
     Config cfg = Config::loadLayered(cli.parser.isSet(cli.config) ? cli.parser.value(cli.config)
                                                                   : QString());

@@ -534,6 +534,19 @@ Sitzung an systemd, ohne die Qt keine Anzeige findet, und startet dann den
 Dienst `fotobox.service`. Der startet die Anwendung nach einem Absturz von
 selbst neu, höchstens fünfmal in einer Minute.
 
+Dazu ein Watchdog: Die Anwendung meldet sich alle 10 Sekunden aus ihrem
+Eventloop bei systemd (`WatchdogSec=30` in der Unit). Bleibt die Meldung aus,
+hängt der Eventloop — der Prozess lebt dann noch und zeigt ein eingefrorenes
+Bild, was ohne Watchdog kein Absturz ist und niemandem auffällt. systemd
+beendet den Dienst dann und startet ihn neu. Im Log steht das als
+`watchdog timeout`.
+
+> Sind die fünf Starts je Minute verbraucht, bleibt der Dienst auf `failed`
+> stehen und die Fotobox dunkel. Zurückholen:
+> `systemctl --user reset-failed fotobox && systemctl --user start fotobox`.
+> Wer das Fenster weiter haben will, setzt in der Unit
+> `StartLimitIntervalSec=300` und `StartLimitBurst=10`.
+
 Steuern und nachsehen:
 
 ```bash
@@ -546,7 +559,7 @@ journalctl --user -u fotobox -f
 > Startet die Fotobox nicht, zeigt `journalctl --user -u fotobox -n 50` den Grund.
 > Als einfacherer Notnagel tut es auch die normale Desktop-Datei ohne Dienst:
 > `cp /usr/share/applications/fotobox.desktop ~/.config/autostart/`. Dann fehlt
-> nur der automatische Neustart nach einem Absturz.
+> nur der automatische Neustart nach einem Absturz und der Watchdog.
 
 ### 7. Bildschirm wachhalten
 
