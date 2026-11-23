@@ -151,6 +151,7 @@ QString Theme::settingsStyle() const
         "QLabel { color: %5; background: transparent; border: none; font-family: \"%6\"; }"
         "QLabel#title { font-family: \"%7\"; font-size: %19px; %8 }"
         "QLabel#clock { color: %23; font-family: \"%20\"; font-size: 26px; }"
+        "QLabel#clockDate { color: %23; font-family: \"%20\"; font-size: 17px; }"
         "QLabel#rowTitle { font-size: 18px; }"
         "QLabel#rowValue { font-size: 18px; min-width: 70px; font-family: \"%20\"; }"
         "QCheckBox { color: %5; font-size: 18px; spacing: 12px; background: transparent; font-family: \"%6\"; }"

@@ -55,6 +55,7 @@ private:
     QWidget* makeRow(const QString& title, QWidget* control, QLabel* value = nullptr);
     void updateClock();
 
+    QLabel* m_date = nullptr;
     QLabel* m_clock = nullptr;
     QTimer* m_clockTimer = nullptr;
     QComboBox* m_theme = nullptr;

@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QDate>
 #include <QSignalBlocker>
 #include <QSlider>
 #include <QTime>
@@ -14,18 +15,19 @@
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
 
-// Ueberschrift links, Uhrzeit rechts in derselben Zeile.
-static QWidget* makeKopf(QLabel* title, QLabel* clock)
+// Ueberschrift links, Datum und Uhrzeit rechts in derselben Zeile.
+static QWidget* makeKopf(QLabel* title, QLabel* date, QLabel* clock)
 {
     auto* kopf = new QWidget(title->parentWidget());
     kopf->setStyleSheet("background: transparent;");
     auto* l = new QHBoxLayout(kopf);
     l->setContentsMargins(0, 0, 0, 0);
-    l->setSpacing(16);
-    title->setParent(kopf);
-    clock->setParent(kopf);
+    l->setSpacing(12);
+    for (QLabel* w : {title, date, clock})
+        w->setParent(kopf);
     l->addWidget(title);
     l->addStretch();
+    l->addWidget(date);
     l->addWidget(clock);
     return kopf;
 }
@@ -39,8 +41,12 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     auto* title = new QLabel("Einstellungen", this);
     title->setObjectName("title");
 
-    // Uhrzeit neben der Ueberschrift. Am Geraet gibt es sonst keine: die
-    // Fotobox laeuft im Vollbild, ohne Leiste und ohne Fenstertitel.
+    // Datum und Uhrzeit neben der Ueberschrift. Am Geraet gibt es sonst
+    // keine: die Fotobox laeuft im Vollbild, ohne Leiste und ohne
+    // Fenstertitel.
+    m_date = new QLabel(this);
+    m_date->setObjectName("clockDate");
+    m_date->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_clock = new QLabel(this);
     m_clock->setObjectName("clock");
     m_clock->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -100,7 +106,7 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(32, 26, 32, 26);
     layout->setSpacing(12);
-    layout->addWidget(makeKopf(title, m_clock));
+    layout->addWidget(makeKopf(title, m_date, m_clock));
     layout->addWidget(makeRow("Design", m_theme));
     m_cameraRow = makeRow("Kamera", m_camera);
     m_cameraRow->hide();
@@ -177,6 +183,16 @@ void SettingsPanel::updateClock()
 {
     // Feste Schreibweise statt QLocale: die Oberflaeche ist durchgehend
     // deutsch, und 24 Stunden lassen sich im Vorbeigehen schneller lesen.
+    // Aus demselben Grund stehen die Wochentage hier und kommen nicht aus
+    // der Spracheinstellung des Systems - die ist auf einem frisch
+    // aufgesetzten Pi englisch.
+    static const char* const wochentage[] = {"Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"};
+    const QDate heute = QDate::currentDate();
+
+    // Das volle Jahr, damit eine falsch gehende Uhr auffaellt: die Bilder
+    // landen sonst im Ordner eines anderen Jahres.
+    m_date->setText(QString("%1, %2").arg(wochentage[heute.dayOfWeek() - 1],
+                                          heute.toString("dd.MM.yyyy")));
     m_clock->setText(QTime::currentTime().toString("HH:mm"));
 }
 
