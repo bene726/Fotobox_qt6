@@ -3,8 +3,10 @@
 
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QHash>
 #include <QSocketNotifier>
 #include <QTextStream>
+#include <QTimer>
 
 #ifdef __linux__
 #include <cerrno>
@@ -45,6 +47,31 @@ struct Watched {
     int fd;
     int line;
 };
+
+// Eine Flanke, so wie der Kernel sie gemeldet hat.
+struct Edge {
+    quint64 ns = 0;        // Zeitstempel des Kernels, nicht der Ausgabe
+    quint64 gapNs = 0;     // Abstand zur vorigen Flanke derselben Leitung
+    bool falling = false;
+};
+
+// Was auf einer Leitung seit dem letzten Bericht angefallen ist.
+struct LineStat {
+    QList<Edge> edges;
+    quint64 lastNs = 0;
+    bool haveLast = false;
+};
+
+QString nsText(quint64 ns)
+{
+    if (ns == 0)
+        return "0";
+    if (ns < 1000000ULL)
+        return QString::number(ns / 1000.0, 'f', 1) + " us";
+    if (ns < 1000000000ULL)
+        return QString::number(ns / 1000000.0, 'f', ns < 10000000ULL ? 2 : 0) + " ms";
+    return QString::number(ns / 1000000000.0, 'f', 2) + " s";
+}
 
 } // namespace
 
@@ -130,24 +157,87 @@ int GpioScan::run(bool watch)
     }
 
     out() << "Beobachte " << watched->size() << " Leitungen mit internem Pull-up.\n"
+          << "Diese Anzeige entprellt absichtlich nicht.\n"
           << "Jetzt den Taster druecken. Beenden mit Strg+C.\n\n";
     out().flush();
 
+    auto* stats = new QHash<int, LineStat>();
+
     for (const Watched& w : *watched) {
-        auto* n = new QSocketNotifier(w.fd, QSocketNotifier::Read, qApp);
-        const int line = w.line;
-        QObject::connect(n, &QSocketNotifier::activated, qApp, [line, fd = w.fd]() {
+        auto* notifier = new QSocketNotifier(w.fd, QSocketNotifier::Read, qApp);
+        QObject::connect(notifier, &QSocketNotifier::activated, qApp,
+                         [stats, line = w.line, fd = w.fd]() {
+            // Nur einsammeln, nicht ausgeben: eine prellende Leitung wuerde
+            // sonst das Terminal zumuellen und die Ausgabe selbst wuerde den
+            // Takt bestimmen. Den Bericht macht der Zeitgeber unten.
             gpio_v2_line_event ev{};
-            int n = 0;
-            while (n++ < 32 && ::read(fd, &ev, sizeof(ev)) == sizeof(ev)) {
-                const char* kind = (ev.id == GPIO_V2_LINE_EVENT_FALLING_EDGE)
-                                       ? "fallend (gedrueckt)" : "steigend (losgelassen)";
-                out() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                      << "  BCM " << line << " (Pin " << headerPin(line) << ")  " << kind << "\n";
-                out().flush();
+            int count = 0;
+            while (count++ < 64 && ::read(fd, &ev, sizeof(ev)) == sizeof(ev)) {
+                LineStat& st = (*stats)[line];
+                Edge e;
+                e.ns = ev.timestamp_ns;
+                e.falling = (ev.id == GPIO_V2_LINE_EVENT_FALLING_EDGE);
+                if (st.haveLast && e.ns > st.lastNs)
+                    e.gapNs = e.ns - st.lastNs;
+                st.lastNs = e.ns;
+                st.haveLast = true;
+                if (st.edges.size() < 4000)
+                    st.edges.append(e);
             }
         });
     }
+
+    auto* stormHinted = new bool(false);
+    auto* report = new QTimer(qApp);
+    report->setInterval(250);
+    QObject::connect(report, &QTimer::timeout, qApp, [stats, stormHinted]() {
+        for (auto it = stats->begin(); it != stats->end(); ++it) {
+            LineStat& st = it.value();
+            if (st.edges.isEmpty())
+                continue;
+            const int line = it.key();
+            const QString when = QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+            const QString who = QString("BCM %1 (Pin %2)").arg(line, 3).arg(headerPin(line), 2);
+
+            if (st.edges.size() <= 2) {
+                // So sieht ein sauberer Tastendruck aus: einzeln auflisten.
+                for (const Edge& e : st.edges) {
+                    out() << when << "  " << who << "  "
+                          << (e.falling ? "fallend (gedrueckt)" : "steigend (losgelassen)");
+                    if (e.gapNs > 0)
+                        out() << "   " << nsText(e.gapNs) << " nach der vorigen Flanke";
+                    out() << "\n";
+                }
+            } else {
+                int falling = 0;
+                quint64 minGap = 0;
+                for (const Edge& e : st.edges) {
+                    if (e.falling)
+                        falling++;
+                    if (e.gapNs > 0 && (minGap == 0 || e.gapNs < minGap))
+                        minGap = e.gapNs;
+                }
+                const quint64 span = st.edges.last().ns - st.edges.first().ns;
+                out() << when << "  " << who << "  " << st.edges.size() << " Flanken in "
+                      << nsText(span) << " (" << falling << " fallend, "
+                      << (st.edges.size() - falling) << " steigend), kuerzester Abstand "
+                      << nsText(minGap) << "  -> prellt\n";
+                if (!*stormHinted) {
+                    *stormHinted = true;
+                    out() << "\n"
+                             "Hinweis: So schnell aufeinander folgende Flanken sind Prellen oder\n"
+                             "Einstreuung, kein Tastendruck. Die Fotobox selbst entprellt, der\n"
+                             "Kernel verwirft dabei alles innerhalb von gpioDebounceMs (Standard\n"
+                             "30 ms). Ruhiger wird die Leitung durch einen externen Pull-up\n"
+                             "(10 kOhm nach 3,3 V), 100 nF vom Pin nach GND und ein kurzes Kabel,\n"
+                             "das nicht parallel zu Netz- oder Blitzleitungen laeuft.\n\n";
+                }
+            }
+            st.edges.clear();
+        }
+        out().flush();
+    });
+    report->start();
 
     return qApp->exec();
 }
