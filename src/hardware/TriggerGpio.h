@@ -30,6 +30,7 @@ public:
 
 private:
     void onEvent();
+    int drain();                         // liest anstehende Flanken weg, Anzahl zurueck
 
     int m_fd = -1;                       // Datei-Deskriptor der angeforderten Leitung
     QSocketNotifier* m_notifier = nullptr;

@@ -153,7 +153,7 @@ TriggerGpio::~TriggerGpio()
         ::close(m_fd);
 }
 
-void TriggerGpio::onEvent()
+int TriggerGpio::drain()
 {
     // Anstehende Ereignisse abholen. Der Deskriptor ist nicht-blockierend, der
     // letzte Leseversuch liefert daher einen Fehler statt zu warten. Zusaetzlich
@@ -163,7 +163,12 @@ void TriggerGpio::onEvent()
     int handled = 0;
     while (handled < 32 && ::read(m_fd, &ev, sizeof(ev)) == sizeof(ev))
         handled++;
+    return handled;
+}
 
+void TriggerGpio::onEvent()
+{
+    const int handled = drain();
     if (handled == 0)
         return;
 
@@ -188,8 +193,15 @@ void TriggerGpio::onEvent()
         if (m_notifier)
             m_notifier->setEnabled(false);
         QTimer::singleShot(2000, this, [this] {
+            // Der Kernel puffert waehrend der Stummschaltung weiter. Diese
+            // Flanken sind alt; wuerden sie jetzt gelesen, startete lange nach
+            // dem Sturm noch eine Aufnahme. Also wegwerfen und den Nachlauf neu
+            // beginnen lassen.
+            for (int i = 0; i < 8 && drain() == 32; ++i) { }
             m_burst = 0;
             m_burstStart = 0;
+            m_lastTriggerMs = QDateTime::currentMSecsSinceEpoch();
+            m_swallowed = 0;
             if (m_notifier)
                 m_notifier->setEnabled(true);
         });
@@ -240,6 +252,11 @@ TriggerGpio::TriggerGpio(const QString& chip, int line, const QString& pull, int
 }
 
 TriggerGpio::~TriggerGpio() = default;
+
+int TriggerGpio::drain()
+{
+    return 0;
+}
 
 void TriggerGpio::onEvent() {}
 
