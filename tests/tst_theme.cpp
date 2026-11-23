@@ -157,6 +157,9 @@ void TestTheme::everyThemeHasAllColors()
              qPrintable(id + ": Knopftext gleich Knopffarbe"));
     QVERIFY2(t.countdownText.rgb() != t.countdownFill.rgb(),
              qPrintable(id + ": Countdown-Zahl gleich Fuellfarbe"));
+    // Die Akzentfarbe traegt die Warnung in der Statuszeile. Faellt sie mit
+    // dem Panel zusammen, bleibt der Hinweis auf den vollen Speicher unsichtbar.
+    QVERIFY2(t.accent.rgb() != t.panel.rgb(), qPrintable(id + ": Akzent gleich Panelfarbe"));
 }
 
 void TestTheme::everyThemeHasAllTexts_data()

@@ -8,13 +8,22 @@
 set(FOTOBOX_TESTS_LIST
     config
     filewatcher
+    storage
     theme
     qrencoder
     systemdwatchdog
+    gphoto
 )
 
+# Einzelne Tests brauchen Quellen, die nicht in fotobox_core liegen, weil sie
+# zur Hardware gehoeren. CameraGPhoto fasst beim blossen Uebersetzen keine
+# Kamera an - geprueft wird hier nur das Auswerten der gphoto2-Ausgabe.
+set(FOTOBOX_EXTRA_gphoto
+    ${CMAKE_SOURCE_DIR}/src/hardware/Camera.cpp
+    ${CMAKE_SOURCE_DIR}/src/hardware/CameraGPhoto.cpp)
+
 foreach(name IN LISTS FOTOBOX_TESTS_LIST)
-    add_executable(tst_${name} tst_${name}.cpp)
+    add_executable(tst_${name} tst_${name}.cpp ${FOTOBOX_EXTRA_${name}})
     target_link_libraries(tst_${name} PRIVATE fotobox_core Qt6::Test)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         # Im Testcode sind Warnungen immer Fehler: hier gibt es keinen

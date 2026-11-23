@@ -23,6 +23,13 @@
 #include <QPushButton>
 #include <QToolButton>
 
+namespace {
+// Wie oft nach dem freien Platz gesehen wird. Zwei Minuten reichen: in der
+// Zeit passen keine 200 MB an Fotos dazwischen, und haeufiger waere nur
+// unnoetige Last auf der Karte.
+constexpr int kStorageCheckMs = 2 * 60 * 1000;
+}
+
 MainWindow::MainWindow(const Config& config, QWidget* parent)
     : QMainWindow(parent)
     , cfg(config)
@@ -197,6 +204,7 @@ void MainWindow::setupHardware()
     camera = createCamera(cfg, liveCam, this);
     connect(camera, &Camera::captured, this, &MainWindow::onCaptured);
     connect(camera, &Camera::captureFailed, this, &MainWindow::onCaptureFailed);
+    connect(camera, &Camera::batteryLevel, settingsPanel, &SettingsPanel::setBattery);
 
     touch = new TouchInputQt(this);
     connect(touch, &TouchInput::touched, this, &MainWindow::onTouched);
@@ -213,6 +221,61 @@ void MainWindow::setupHardware()
     configWatcher = new ConfigWatcher(this);
     connect(configWatcher, &ConfigWatcher::changed, this, &MainWindow::reloadConfig);
     configWatcher->watch(cfg);
+
+    // Der Platz wird auch im Leerlauf knapp: die Nextcloud synchronisiert,
+    // das Protokoll waechst. Deshalb regelmaessig nachsehen, nicht nur beim
+    // Fotografieren.
+    storageTimer.setInterval(kStorageCheckMs);
+    connect(&storageTimer, &QTimer::timeout, this, &MainWindow::refreshStorage);
+    storageTimer.start();
+    refreshStorage();
+}
+
+void MainWindow::refreshStorage()
+{
+    const Storage::Space space = Storage::check(imagePath);
+    settingsPanel->setStorage(space);
+
+    const Storage::Level vorher = storageLevel;
+    storageLevel = space.known ? space.level : Storage::Level::Critical;
+    if (storageLevel == vorher)
+        return;   // nur bei einem Wechsel melden, nicht alle zwei Minuten
+
+    // Sind die Einstellungen offen, steht dasselbe schon in der Statuszeile.
+    // Die Meldung legte sich sonst ueber die oberen Zeilen des Fensters.
+    if (settingsPanel->isVisible())
+        return;
+
+    if (!space.known) {
+        showMessage(QString::fromUtf8("Bildordner nicht erreichbar: ") + imagePath, 8000);
+        return;
+    }
+
+    const QString frei = Storage::humanBytes(space.freeBytes);
+    if (storageLevel == Storage::Level::Critical) {
+        // Hier geht es um die Karte im Geraet, nicht um die der Kamera - die
+        // Fehlermeldung von gphoto2 zeigt sonst auf die falsche.
+        showMessage(space.photosLeftMeaningful()
+                        ? QString::fromUtf8("Speicher fast voll: nur noch %1 frei, "
+                                            "rund %2 Fotos").arg(frei).arg(space.photosLeft)
+                        : QString::fromUtf8("Speicher fast voll: nur noch %1 frei").arg(frei),
+                    10000);
+    } else if (storageLevel == Storage::Level::Low) {
+        showMessage(space.photosLeftMeaningful()
+                        ? QString::fromUtf8("Speicher wird knapp: noch rund %1 Fotos")
+                              .arg(space.photosLeft)
+                        : QString::fromUtf8("Speicher wird knapp: noch %1 frei").arg(frei),
+                    6000);
+    }
+}
+
+void MainWindow::refreshBattery()
+{
+    // Nur wenn die Kamera ohnehin wach ist. Eine Abfrage weckt eine
+    // Spiegelreflex auf, und staendiges Wecken kostet genau den Akku, dessen
+    // Stand hier angezeigt werden soll.
+    if (camera)
+        camera->requestBatteryLevel();
 }
 
 void MainWindow::applyTheme(const QString& id)
@@ -598,6 +661,8 @@ void MainWindow::openSettings()
     settingsPanel->setConfig(cfg);
     settingsPanel->setCameras(CameraScan::devices(), cfg.liveViewDevice,
                               liveCam && liveCam->canSetDevice());
+    refreshStorage();
+    refreshBattery();
     settingsShadow->setVisible(theme.hardShadow);
     settingsPanel->show();
     settingsPanel->raise();
@@ -707,6 +772,7 @@ void MainWindow::reloadConfig()
     if (neuerPfad != imagePath) {
         qInfo() << "Bildordner gewechselt:" << imagePath << "->" << neuerPfad;
         imagePath = neuerPfad;
+        storageLevel = Storage::Level::Ok;   // neuer Datentraeger, neu bewerten
         delete watcher;
         watcher = new FileWatcher(imagePath, this);
         connect(watcher, &FileWatcher::newFile, this, &MainWindow::onNewFile);
@@ -798,6 +864,11 @@ void MainWindow::onCaptured(const QString& path)
     setState(State::ShowPhoto);
     showOverlayImage(pix);
     photoTimer.start();
+
+    // Nach der Aufnahme ist die Kamera wach und ein Bild mehr liegt im
+    // Ordner: der beste Moment fuer beide Abfragen.
+    refreshStorage();
+    refreshBattery();
 }
 
 void MainWindow::onCaptureFailed(const QString& error)

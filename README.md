@@ -291,6 +291,7 @@ src/
 ├── core/                    # Konfiguration, Dateiwatcher
 │   ├── Config.*             # JSON-Konfiguration mit Standardwerten
 │   ├── ConfigWatcher.*      # meldet geänderte Konfigurationsdateien
+│   ├── Storage.*            # freier Platz im Bildordner, Fotos-Schätzung
 │   ├── SystemdWatchdog.*    # Lebenszeichen an systemd
 │   └── FileWatcher.*        # beobachtet den Bildordner
 │
@@ -330,6 +331,8 @@ tests/                       # Qt-Test, ohne Hardware und ohne Bildschirm
 ├── tst_filewatcher.cpp      # Endungen, Sortierung, neue Dateien
 ├── tst_theme.cpp            # jedes Design vollständig
 ├── tst_qrencoder.cpp        # QR-Code gegen die Maße der Norm
+├── tst_storage.cpp          # Platzpruefung und Fotos-Schätzung
+├── tst_gphoto.cpp           # Auswertung der gphoto2-Ausgabe (Akkustand)
 └── tst_systemdwatchdog.cpp  # gegen einen nachgebauten systemd-Socket
 ```
 

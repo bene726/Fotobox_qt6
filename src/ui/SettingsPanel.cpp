@@ -1,6 +1,8 @@
 #include "SettingsPanel.h"
 #include "Theme.h"
 
+#include <QStyle>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -50,6 +52,12 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     m_clock = new QLabel(this);
     m_clock->setObjectName("clock");
     m_clock->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    // Statuszeile darunter: freier Platz und Ladestand. Beides sind stille
+    // Ausfaelle - sie melden sich erst, wenn jemand vor der Box steht.
+    m_status = new QLabel(this);
+    m_status->setObjectName("status");
+    updateStatusLine();
     m_clockTimer = new QTimer(this);
     m_clockTimer->setInterval(1000);
     connect(m_clockTimer, &QTimer::timeout, this, &SettingsPanel::updateClock);
@@ -107,6 +115,7 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     layout->setContentsMargins(32, 26, 32, 26);
     layout->setSpacing(12);
     layout->addWidget(makeKopf(title, m_date, m_clock));
+    layout->addWidget(m_status);
     layout->addWidget(makeRow("Design", m_theme));
     m_cameraRow = makeRow("Kamera", m_camera);
     m_cameraRow->hide();
@@ -194,6 +203,58 @@ void SettingsPanel::updateClock()
     m_date->setText(QString("%1, %2").arg(wochentage[heute.dayOfWeek() - 1],
                                           heute.toString("dd.MM.yyyy")));
     m_clock->setText(QTime::currentTime().toString("HH:mm"));
+}
+
+void SettingsPanel::setStorage(const Storage::Space& space)
+{
+    m_space = space;
+    updateStatusLine();
+}
+
+void SettingsPanel::setBattery(int percent)
+{
+    m_battery = percent;
+    updateStatusLine();
+}
+
+void SettingsPanel::updateStatusLine()
+{
+    QStringList teile;
+    bool warnen = false;
+
+    if (!m_space.known) {
+        teile << QString::fromUtf8("Bildordner nicht erreichbar");
+        warnen = true;
+    } else if (m_space.readOnly) {
+        // Ein nur lesend eingehaengter Stick nimmt kein einziges Foto an.
+        teile << QString::fromUtf8("Bildordner ist schreibgeschützt");
+        warnen = true;
+    } else {
+        // Die Anzahl ist wichtiger als die Gigabyte: sie sagt, wie lange es
+        // noch reicht. Nur wenn die Schaetzung an die Obergrenze stoesst,
+        // bleibt sie weg - "99999 Fotos" waere keine Auskunft.
+        if (!m_space.photosLeftMeaningful())
+            teile << QString::fromUtf8("Speicher: %1 frei")
+                         .arg(Storage::humanBytes(m_space.freeBytes));
+        else
+            teile << QString::fromUtf8("Speicher: %1 frei, noch rund %2 Fotos")
+                         .arg(Storage::humanBytes(m_space.freeBytes))
+                         .arg(m_space.photosLeft);
+        warnen = m_space.level != Storage::Level::Ok;
+    }
+
+    if (m_battery >= 0)
+        teile << QString::fromUtf8("Kamera-Akku: %1 %").arg(m_battery);
+
+    m_status->setText(teile.join(QString::fromUtf8("   ·   ")));
+
+    // Eigenschaft statt zweitem Stylesheet, damit das Design die Warnfarbe
+    // bestimmt und nicht dieser Quelltext.
+    if (m_status->property("warn").toBool() != warnen) {
+        m_status->setProperty("warn", warnen);
+        m_status->style()->unpolish(m_status);
+        m_status->style()->polish(m_status);
+    }
 }
 
 void SettingsPanel::showEvent(QShowEvent* e)

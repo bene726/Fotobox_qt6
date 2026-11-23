@@ -19,16 +19,27 @@ namespace {
 
 // Legt eine Datei mit Inhalt an und setzt ihre Aenderungszeit, damit die
 // Sortierung nach Alter pruefbar ist.
+//
+// Die Zeit wird bewusst erst nach dem Schliessen gesetzt: wird sie vorher
+// gesetzt, ueberschreibt das Schreiben der gepufferten Daten beim Schliessen
+// sie wieder. Dann tragen alle Dateien praktisch dieselbe Zeit, und die
+// Reihenfolge haengt vom Zufall ab.
 bool makeFile(const QString& path, const QDateTime& mtime = {})
 {
-    QFile f(path);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    {
+        QFile f(path);
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            return false;
+        f.write("x");
+        f.close();
+    }
+    if (!mtime.isValid())
+        return true;
+
+    QFile f(path);   // ohne Truncate: es wird nichts mehr geschrieben
+    if (!f.open(QIODevice::ReadWrite))
         return false;
-    f.write("x");
-    if (mtime.isValid() && !f.setFileTime(mtime, QFileDevice::FileModificationTime))
-        return false;
-    f.close();
-    return true;
+    return f.setFileTime(mtime, QFileDevice::FileModificationTime);
 }
 
 } // namespace
@@ -119,6 +130,18 @@ void TestFileWatcher::imageFilesSortsOldestFirst()
     QVERIFY(makeFile(dir.filePath("mittags.jpg"), now.addSecs(-3600)));
     QVERIFY(makeFile(dir.filePath("abends.jpg"), now.addSecs(-60)));
     QVERIFY(makeFile(dir.filePath("morgens.jpg"), now.addSecs(-7200)));
+
+    // Erst nachsehen, ob die Zeiten ueberhaupt angekommen sind: sonst
+    // meldet ein Fehlschlag die falsche Ursache.
+    for (const auto& [name, erwartet] : QList<QPair<QString, QDateTime>>{
+             {"morgens.jpg", now.addSecs(-7200)},
+             {"mittags.jpg", now.addSecs(-3600)},
+             {"abends.jpg", now.addSecs(-60)}}) {
+        const QDateTime ist = QFileInfo(dir.filePath(name)).lastModified();
+        QVERIFY2(qAbs(ist.secsTo(erwartet)) <= 2,
+                 qPrintable(QString("%1: Zeit nicht gesetzt (%2 statt %3)")
+                                .arg(name, ist.toString(), erwartet.toString())));
+    }
 
     QStringList names;
     for (const QString& p : FileWatcher::imageFiles(dir.path()))

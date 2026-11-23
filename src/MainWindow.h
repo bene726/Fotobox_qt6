@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include "core/Config.h"
+#include "core/Storage.h"
 #include "ui/Theme.h"
 
 class QLabel;
@@ -92,6 +93,9 @@ private:
     QPixmap fitToScreen(const QPixmap& pix) const;
     void showMessage(const QString& text, int ms = 3000);
 
+    void refreshStorage();   // freier Platz im Bildordner
+    void refreshBattery();   // Ladestand der Kamera, nur wenn sie ohnehin wach ist
+
     Config cfg;
     Theme theme;
     QString imagePath;
@@ -127,6 +131,8 @@ private:
     QTimer messageTimer;
     QTimer liveWatchdog;     // meldet, wenn gar kein Livebild ankommt
     bool liveFrameSeen = false;
+    QTimer storageTimer;     // sieht regelmaessig nach dem freien Platz
+    Storage::Level storageLevel = Storage::Level::Ok;   // zuletzt gemeldeter Stand
 
     int countdownValue = 0;
     QStringList slideshowImages;
