@@ -9,11 +9,15 @@
       LED-Netzteil, Signalader wirklich auf Pin 32, Spannung an Pin 32 gegen Pin 30
       messen (0 V bzw. 3,3 V), Steuerspannung des Transistormoduls (manche brauchen 5 V).
       Testbefehl: `echo 1000000 > /sys/class/pwm/pwmchip1/pwm0/duty_cycle`
-- [ ] **Taster erzeugt einen Flankensturm.** Beim Verbinden fror die Oberfläche ein, SSH
-      blieb erreichbar. Die Leseschleife ohne Grenze ist behoben, die Leitung ist damit
-      aber nicht ruhig. Nach dem Update auf die Warnung „Mehr als N Flanken je Sekunde“
-      im Protokoll achten; falls sie kommt, `pinctrl get 17` prüfen und notfalls einen
-      Widerstand von 10 kΩ zwischen Pin 11 und 3,3 V setzen.
+- [ ] **Taster: Prellen am 7-m-Kabel.** Das Einfrieren ist gefunden und behoben – der
+      Ereignis-Deskriptor war blockierend, `read()` wartete im Oberflächen-Thread
+      (Commit `514724e`). Übrig bleibt die unruhige Leitung: der interne Pull-up des
+      RP1 hat rund 50 kΩ, das reicht bei 7 m nicht. Softwareseitig wird das durch
+      400 ms Nachlauf je Druck abgefangen, die Warnung greift erst ab 2000 Flanken
+      je Sekunde. Abhilfe an der Hardware steht in [GPIO.md](GPIO.md), Abschnitt
+      „Lange Leitung zum Taster“: 2,2 kΩ nach 3,3 V, 100 nF nach GND, 330 Ω in Reihe.
+      Zum Nachmessen `fotobox --gpio-watch`, ein Druck genügt.
+      **Am Pi noch nicht nachgeprüft.**
 
 ### Konfiguration am Pi aufräumen
 - [ ] `SystemData`-Block aus `~/.config/fotobox/config.json` entfernen; dort steckt noch
@@ -22,8 +26,26 @@
 
 ### Sonstiges
 - [ ] Autostart auf dem Pi testen (Dienst liegt im Paket, ungetestet)
+- [ ] systemd-Watchdog am Pi nachprüfen: nach dem Update
+      `systemctl --user show fotobox -p WatchdogUSec -p Restart` (erwartet `WatchdogUSec=30s`)
+      und im Protokoll die Zeile „systemd-Watchdog aktiv“ suchen
 - [ ] Nextcloud-Anbindung klären: Sync-Client auf dem Pi oder Upload aus der Anwendung
 - [ ] Release `v0.1.0` fertigstellen (Umgebungsregel für `v*`, dann Lauf wiederholen)
+
+### Tests
+Seit dem Testgerüst (`cmake -DFOTOBOX_TESTS=ON`, dann `ctest`) laufen Tests für
+Konfiguration, Bildordner, Designs, QR-Code und Watchdog; die CI fährt sie auf x86_64
+und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
+
+- [ ] Zustandsmaschine von `MainWindow` testbar machen (Slideshow → Countdown →
+      Capturing → ShowPhoto). Sie steckt in 813 Zeilen zusammen mit Layout und
+      Theming und ist ohne Bildschirm nicht anfassbar.
+- [ ] `TriggerGpio`: Entprellen, Nachlauf und Sturmerkennung hängen direkt an
+      `QDateTime::currentMSecsSinceEpoch()` und am Datei-Deskriptor. Mit einer
+      injizierten Uhr und einer Liste von Flanken wären genau die Fälle prüfbar,
+      die diese Woche zweimal schiefgegangen sind.
+- [ ] Kamera-Backends (`CameraGPhoto`, `LiveViewCameraRpicam`): die Fehler­übersetzung
+      ließe sich gegen echte gphoto2-Ausgaben prüfen, ohne Kamera.
 
 ---
 

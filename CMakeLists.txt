@@ -8,21 +8,38 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(FOTOBOX_PI "Build for Raspberry Pi (echte Hardware als Standard-Backends)" OFF)
+option(FOTOBOX_TESTS "Unit-Tests bauen (ctest)" OFF)
+option(FOTOBOX_WERROR "Warnungen als Fehler behandeln (fuer die CI)" OFF)
 set(FOTOBOX_VERSION "0.0.0" CACHE STRING "Versionsstring fuer Programm und Paket")
 set(FOTOBOX_MAINTAINER "Bene <46480461+BenediktCyranka@users.noreply.github.com>"
     CACHE STRING "Maintainer-Feld des Debian-Pakets")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(Qt6 OPTIONAL_COMPONENTS Multimedia)
+if(FOTOBOX_TESTS)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+endif()
+
+# ------------------------------------------------------------------- Kern
+#
+# Alles, was ohne Widgets und ohne Hardware auskommt, liegt in einer eigenen
+# Bibliothek. Die Tests binden sie, ohne die Oberflaeche mitzuziehen.
+add_library(fotobox_core STATIC
+    src/core/Config.cpp
+    src/core/ConfigWatcher.cpp
+    src/core/FileWatcher.cpp
+    src/core/SystemdWatchdog.cpp
+
+    src/ui/Theme.cpp
+    src/ui/qrcodegen.cpp
+)
+target_include_directories(fotobox_core PUBLIC src)
+target_link_libraries(fotobox_core PUBLIC Qt6::Core Qt6::Gui)
 
 qt_add_executable(fotobox
     src/main.cpp
     src/MainWindow.cpp
 
-    src/core/Config.cpp
-    src/core/ConfigWatcher.cpp
-    src/core/FileWatcher.cpp
-    src/core/SystemdWatchdog.cpp
 
     src/hardware/HardwareFactory.cpp
     src/hardware/Camera.cpp
@@ -46,13 +63,11 @@ qt_add_executable(fotobox
 
     src/ui/QrCodeWidget.cpp
     src/ui/SettingsPanel.cpp
-    src/ui/Theme.cpp
     src/ui/QrCard.cpp
-    src/ui/qrcodegen.cpp
 )
 
 target_include_directories(fotobox PRIVATE src)
-target_link_libraries(fotobox PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+target_link_libraries(fotobox PRIVATE fotobox_core Qt6::Core Qt6::Gui Qt6::Widgets)
 
 # Webcam-Livebild (Host) nur, wenn Qt Multimedia vorhanden ist.
 if(Qt6Multimedia_FOUND)
@@ -82,6 +97,19 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(fotobox PRIVATE -Wall -Wextra)
+    # qrcodegen ist eingebundener Fremdcode: nicht unsere Warnungen, nicht
+    # unsere Baustelle. Der Rest des Kerns wird genauso streng geprueft.
+    target_compile_options(fotobox_core PRIVATE -Wall -Wextra)
+    set_source_files_properties(src/ui/qrcodegen.cpp PROPERTIES COMPILE_OPTIONS "-w")
+    if(FOTOBOX_WERROR)
+        target_compile_options(fotobox PRIVATE -Werror)
+        target_compile_options(fotobox_core PRIVATE -Werror)
+    endif()
+endif()
+
+if(FOTOBOX_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 # ---------------------------------------------------------------- Installation

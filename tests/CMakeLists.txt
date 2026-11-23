@@ -1,0 +1,30 @@
+# Ein Programm je Testdatei. ctest startet sie einzeln, damit ein Absturz in
+# einem Bereich die uebrigen Ergebnisse nicht mitnimmt.
+#
+# Alle Tests laufen ohne Bildschirm und ohne Hardware: sie binden fotobox_core,
+# nicht das Programm. Was Kamera, GPIO oder Oberflaeche braucht, steht hier
+# bewusst nicht - siehe TODO.md.
+
+set(FOTOBOX_TESTS_LIST
+    config
+    filewatcher
+    theme
+    qrencoder
+    systemdwatchdog
+)
+
+foreach(name IN LISTS FOTOBOX_TESTS_LIST)
+    add_executable(tst_${name} tst_${name}.cpp)
+    target_link_libraries(tst_${name} PRIVATE fotobox_core Qt6::Test)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        # Im Testcode sind Warnungen immer Fehler: hier gibt es keinen
+        # Altbestand, den man erst aufraeumen muesste.
+        target_compile_options(tst_${name} PRIVATE -Wall -Wextra -Werror)
+    endif()
+
+    add_test(NAME ${name} COMMAND tst_${name})
+    set_tests_properties(${name} PROPERTIES
+        # Qt braucht eine Plattform; ueber SSH und in der CI gibt es keine Anzeige.
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        TIMEOUT 120)
+endforeach()

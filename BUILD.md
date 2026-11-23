@@ -75,6 +75,37 @@ ninja -C build
 
 ---
 
+## Tests
+
+Die Tests brauchen weder Kamera noch GPIO noch Bildschirm und laufen auf jedem der
+drei Systeme. Sie hängen an `Qt6::Test` (in `qt6-base-dev` enthalten) und werden nur
+gebaut, wenn man sie anfordert:
+
+```bash
+cmake -B build -G Ninja -DFOTOBOX_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Einzelnes Programm starten, mit allen Namen der Testfälle:
+```bash
+QT_QPA_PLATFORM=offscreen ./build/tests/tst_config -functions
+```
+
+Geprüft werden `Config` (Ebenen, Vorrang, kaputte Dateien, Speichern), `FileWatcher`
+(Endungen, Sortierung, neue Dateien), `Theme` (jedes Design vollständig), der QR-Code
+gegen die Maße der Norm und `SystemdWatchdog` gegen einen nachgebauten
+systemd-Socket. Was Widgets oder echte Hardware braucht, steht noch aus – siehe
+TODO.md.
+
+### Warnungen
+
+`-Wall -Wextra` ist immer an. Mit `-DFOTOBOX_WERROR=ON` werden sie zu Fehlern; die CI
+baut damit einmal für den Host und einmal mit `-DFOTOBOX_PI=ON`. Der eingebundene
+Fremdcode `src/ui/qrcodegen.cpp` ist davon ausgenommen.
+
+---
+
 ## Debug-Tipps
 - `qDebug()` für Pfade und Zustände nutzen
 - Build immer **clean**, wenn neue QObject-Klassen dazukommen:

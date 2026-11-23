@@ -290,6 +290,8 @@ beachtet, Hochformat kommt also richtig herum an.
 src/
 ├── core/                    # Konfiguration, Dateiwatcher
 │   ├── Config.*             # JSON-Konfiguration mit Standardwerten
+│   ├── ConfigWatcher.*      # meldet geänderte Konfigurationsdateien
+│   ├── SystemdWatchdog.*    # Lebenszeichen an systemd
 │   └── FileWatcher.*        # beobachtet den Bildordner
 │
 ├── hardware/                # Kameras & Auslöser
@@ -322,7 +324,17 @@ src/
 │
 ├── MainWindow.*             # Zustandsmaschine + Overlays
 └── main.cpp                 # Kommandozeile, Start
+
+tests/                       # Qt-Test, ohne Hardware und ohne Bildschirm
+├── tst_config.cpp           # Ebenen, Vorrang, kaputte Dateien, Speichern
+├── tst_filewatcher.cpp      # Endungen, Sortierung, neue Dateien
+├── tst_theme.cpp            # jedes Design vollständig
+├── tst_qrencoder.cpp        # QR-Code gegen die Maße der Norm
+└── tst_systemdwatchdog.cpp  # gegen einen nachgebauten systemd-Socket
 ```
+
+Alles unter `core/` und `ui/Theme`/`ui/qrcodegen` liegt in der Bibliothek
+`fotobox_core`. Die Tests binden sie, ohne die Oberfläche mitzuziehen.
 
 ---
 
@@ -407,6 +419,16 @@ cmake -B build -G Ninja
 ninja -C build
 ./build/fotobox
 ```
+
+### Tests
+
+Brauchen weder Kamera noch GPIO noch Bildschirm:
+
+```bash
+cmake -B build -G Ninja -DFOTOBOX_TESTS=ON && cmake --build build && ctest --test-dir build
+```
+
+Details in [BUILD.md](BUILD.md), offene Lücken in [TODO.md](TODO.md).
 
 ---
 
