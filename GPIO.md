@@ -41,12 +41,54 @@ GPIO ──────┬────── Taster ────── GND
 ```
 
 Ruhezustand ist damit High, das Drücken erzeugt eine **fallende Flanke**.
-Ein externer Widerstand ist nicht nötig.
+Bei kurzer Leitung – bis etwa einen Meter – ist ein externer Widerstand nicht nötig.
 
 Alternativ Taster gegen 3,3 V: dann `"gpioPull": "down"` setzen, ausgewertet wird
 die steigende Flanke.
 
 > ⚠️ Niemals gegen 5 V schalten. Die GPIOs vertragen nur 3,3 V.
+
+### Lange Leitung zum Taster
+
+Der interne Pull-up hat etwa **50 kΩ**. Das genügt für ein kurzes Kabel, nicht
+mehr für die paar Meter, die ein Taster am Stativ oder in der Hand braucht:
+
+- Die Leitung bringt rund 50–100 pF je Meter mit. Bei 7 m sind das etwa 0,5 nF,
+  die der schwache Pull-up über einige zehn Mikrosekunden laden muss – die
+  Flanke wird flach.
+- Vor allem aber ist eine Leitung mit 50 kΩ Quellwiderstand eine gute Antenne.
+  Netzbrummen, ein Blitz oder ein Schaltnetzteil in der Nähe reichen, um den
+  Eingang mehrfach über die Schaltschwelle zu ziehen. In `--gpio-watch` sieht
+  das wie ein prellender Taster aus, ist aber Einstreuung.
+
+Dagegen hilft ein externer Pull-up am **Pi-Ende**, zusammen mit einem Tiefpass:
+
+```
+              3,3 V (Pin 1)
+                  │
+                 2,2 kΩ            externer Pull-up
+                  │
+GPIO 17 (Pin 11) ─┼── 330 Ω ──────────── Taster ──┐
+                  │                                │  7 m, verdrillt
+               100 nF                              │
+                  │                                │
+GND (Pin 9) ──────┴────────────────────────────────┘
+```
+
+- **2,2 kΩ nach 3,3 V** senkt den Quellwiderstand um mehr als das Zwanzigfache.
+  Erlaubt ist alles von 1 kΩ bis 4,7 kΩ; bei 2,2 kΩ fließen im gedrückten
+  Zustand 1,5 mA.
+- **100 nF vom Pin nach GND** glättet Spitzen. Mit dem Pull-up ergibt das beim
+  Loslassen rund 220 µs, über den Vorwiderstand beim Drücken rund 33 µs.
+- **330 Ω in Reihe** hält den Pin aus der 7 m langen Antenne heraus und
+  begrenzt den Strom bei einer statischen Entladung am Taster.
+- Beide Bauteile gehören **an den Pi**, nicht an den Taster.
+- Die Hin- und Rückleitung **verdrillen** und als Rückleitung den GND-Pin direkt
+  daneben nehmen (Pin 9 liegt neben Pin 11). Nicht parallel zu Netz- oder
+  Blitzleitungen verlegen. Bei geschirmtem Kabel den Schirm nur am Pi auf GND.
+
+Mit externem Pull-up kann `"gpioPull": "none"` gesetzt werden; der interne
+Widerstand liegt sonst einfach parallel, was nicht stört.
 
 ### Implementierung
 - Klasse `TriggerGpio`
@@ -78,8 +120,21 @@ Taster drücken, die Ausgabe nennt BCM-Nummer und Pin am Header:
 
 ```
 20:13:44.218  BCM 17 (Pin 11)  fallend (gedrueckt)
-20:13:44.396  BCM 17 (Pin 11)  steigend (losgelassen)
+20:13:44.396  BCM 17 (Pin 11)  steigend (losgelassen)   178 ms nach der vorigen Flanke
 ```
+
+Die Zeiten stammen aus dem Kernel, nicht vom Zeitpunkt der Ausgabe, und sind
+deshalb auch bei einer unruhigen Leitung belastbar. Gemeldet wird alle 250 ms
+gesammelt. Prellt es, steht dort statt der einzelnen Flanken eine Zeile wie:
+
+```
+20:13:44.468  BCM 17 (Pin 11)  83 Flanken in 240 ms (42 fallend, 41 steigend), kuerzester Abstand 0.30 ms  -> prellt
+```
+
+Das ist der Normalfall bei einem mechanischen Taster an langer Leitung, siehe
+[Lange Leitung zum Taster](#lange-leitung-zum-taster). Diese Anzeige entprellt
+absichtlich nicht; im Betrieb hält die Anwendung nach jeder gemeldeten Flanke
+400 ms Nachlauf, in denen weitere Flanken nur weggelesen werden.
 
 Beide Modi brauchen keinen Bildschirm und laufen auch über SSH.
 
@@ -182,5 +237,6 @@ sudo usermod -aG gpio "$USER"   # danach neu anmelden
 
 ## Sicherheit
 - GPIOs niemals direkt im UI-Thread pollen; hier löst der Kernel das über Ereignisse
-- Entprellen beachten, Standard sind 30 ms
+- Entprellen beachten, Standard sind 30 ms (`"gpioDebounceMs"`); dazu kommen
+  400 ms Nachlauf nach jedem gemeldeten Druck
 - Die Last des LED-Bands läuft über den Transistor, nicht über den GPIO
