@@ -150,6 +150,7 @@ QString Theme::settingsStyle() const
         "#settingsPanel { background-color: %1; border: %2px solid %3; border-radius: %4px; }"
         "QLabel { color: %5; background: transparent; border: none; font-family: \"%6\"; }"
         "QLabel#title { font-family: \"%7\"; font-size: %19px; %8 }"
+        "QLabel#clock { color: %23; font-family: \"%20\"; font-size: 26px; }"
         "QLabel#rowTitle { font-size: 18px; }"
         "QLabel#rowValue { font-size: 18px; min-width: 70px; font-family: \"%20\"; }"
         "QCheckBox { color: %5; font-size: 18px; spacing: 12px; background: transparent; font-family: \"%6\"; }"
@@ -173,7 +174,8 @@ QString Theme::settingsStyle() const
         .arg(sliderHandleBorderWidth).arg(rgba(sliderHandleBorder))
         .arg(rgba(primaryText), rgba(secondaryText), rgba(secondaryBg), rgba(secondaryBorder))
         .arg(scriptDisplay ? 40 : 32).arg(controlFamily())
-        .arg(rgba(dangerText), rgba(dangerBg));
+        .arg(rgba(dangerText), rgba(dangerBg))
+        .arg(rgba(textMuted));
 }
 
 QString Theme::comboPopupStyle() const

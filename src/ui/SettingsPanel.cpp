@@ -8,10 +8,27 @@
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSlider>
+#include <QTime>
 #include <QTimer>
 #include <QAbstractItemView>
 #include <QStyledItemDelegate>
 #include <QVBoxLayout>
+
+// Ueberschrift links, Uhrzeit rechts in derselben Zeile.
+static QWidget* makeKopf(QLabel* title, QLabel* clock)
+{
+    auto* kopf = new QWidget(title->parentWidget());
+    kopf->setStyleSheet("background: transparent;");
+    auto* l = new QHBoxLayout(kopf);
+    l->setContentsMargins(0, 0, 0, 0);
+    l->setSpacing(16);
+    title->setParent(kopf);
+    clock->setParent(kopf);
+    l->addWidget(title);
+    l->addStretch();
+    l->addWidget(clock);
+    return kopf;
+}
 
 SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     : QWidget(parent)
@@ -21,6 +38,16 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
 
     auto* title = new QLabel("Einstellungen", this);
     title->setObjectName("title");
+
+    // Uhrzeit neben der Ueberschrift. Am Geraet gibt es sonst keine: die
+    // Fotobox laeuft im Vollbild, ohne Leiste und ohne Fenstertitel.
+    m_clock = new QLabel(this);
+    m_clock->setObjectName("clock");
+    m_clock->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    m_clockTimer = new QTimer(this);
+    m_clockTimer->setInterval(1000);
+    connect(m_clockTimer, &QTimer::timeout, this, &SettingsPanel::updateClock);
+    updateClock();
 
     m_theme = new QComboBox(this);
     m_theme->setItemDelegate(new QStyledItemDelegate(m_theme)); // damit das Stylesheet fuer die Liste greift
@@ -73,7 +100,7 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(32, 26, 32, 26);
     layout->setSpacing(12);
-    layout->addWidget(title);
+    layout->addWidget(makeKopf(title, m_clock));
     layout->addWidget(makeRow("Design", m_theme));
     m_cameraRow = makeRow("Kamera", m_camera);
     m_cameraRow->hide();
@@ -144,6 +171,26 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     connect(m_shutdownArm, &QTimer::timeout, this, &SettingsPanel::resetShutdownButton);
 
     setConfig(cfg);
+}
+
+void SettingsPanel::updateClock()
+{
+    // Feste Schreibweise statt QLocale: die Oberflaeche ist durchgehend
+    // deutsch, und 24 Stunden lassen sich im Vorbeigehen schneller lesen.
+    m_clock->setText(QTime::currentTime().toString("HH:mm"));
+}
+
+void SettingsPanel::showEvent(QShowEvent* e)
+{
+    updateClock();        // nicht erst in einer Sekunde stimmen
+    m_clockTimer->start();
+    QWidget::showEvent(e);
+}
+
+void SettingsPanel::hideEvent(QHideEvent* e)
+{
+    m_clockTimer->stop();
+    QWidget::hideEvent(e);
 }
 
 QWidget* SettingsPanel::makeRow(const QString& title, QWidget* control, QLabel* value)

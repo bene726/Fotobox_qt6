@@ -12,6 +12,8 @@ class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QTimer;
+class QHideEvent;
+class QShowEvent;
 
 // Einstellungs-Overlay fuer den Touchscreen.
 // Aenderungen werden sofort per Signal gemeldet, "Speichern" schreibt die config.json.
@@ -30,6 +32,12 @@ public:
     void openThemeDropdown();   // fuer Screenshots
     void resetShutdownButton(); // Bestaetigung zuruecknehmen, z.B. beim Schliessen
 
+protected:
+    // Die Uhr laeuft nur, solange das Overlay zu sehen ist. Im Leerlauf soll
+    // die Fotobox nicht jede Sekunde aufwachen.
+    void showEvent(QShowEvent* e) override;
+    void hideEvent(QHideEvent* e) override;
+
 signals:
     void themeChanged(const QString& id);
     void cameraChanged(const QString& device);
@@ -45,7 +53,10 @@ signals:
 
 private:
     QWidget* makeRow(const QString& title, QWidget* control, QLabel* value = nullptr);
+    void updateClock();
 
+    QLabel* m_clock = nullptr;
+    QTimer* m_clockTimer = nullptr;
     QComboBox* m_theme = nullptr;
     QComboBox* m_camera = nullptr;
     QWidget* m_cameraRow = nullptr;
