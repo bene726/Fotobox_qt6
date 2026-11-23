@@ -1,6 +1,10 @@
 # Baut fotobox als .deb fuer Raspberry Pi OS (arm64, Bookworm und Trixie),
 # veroeffentlicht Nightlies und Releases und pflegt das Apt-Repo auf GitHub Pages.
 #
+# Jeder Lauf prueft zuerst die Tests (Job "test", Host-Build auf x86_64) und
+# baut danach das Paket fuer arm64. Der Host-Build ist bewusst dabei: er ist der
+# einzige Lauf, der die Zweige ohne FOTOBOX_PI uebersetzt.
+#
 #   Push auf main  -> Nightly-Release (Tag "nightly") + Apt-Komponente "nightly"
 #   Tag v*         -> Release + Apt-Komponente "main"
 #   Pull Request   -> nur bauen
@@ -65,6 +69,103 @@ jobs:
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "Version $VERSION ($CHANNEL, Vorabversion: $PRERELEASE)"
 
+  # ------------------------------------------------------------ Tests (Host-Build)
+  #
+  # Laeuft auf x86_64 und ohne FOTOBOX_PI, also mit den Host-Backends. Damit
+  # deckt dieser Job zwei Dinge ab, die der Paketbau nicht sieht: die Zweige
+  # fuer den Entwicklungsrechner und eine zweite Architektur.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Abhaengigkeiten
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build \
+            qt6-base-dev qt6-base-dev-tools qt6-multimedia-dev \
+            libgl1 libegl1 libxkbcommon0 fonts-dejavu-core
+      - uses: actions/checkout@v7
+      - name: Konfigurieren und bauen
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DFOTOBOX_TESTS=ON
+          cmake --build build
+      - name: Tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Diagnose ohne Bildschirm
+        run: |
+          set -euo pipefail
+          export QT_QPA_PLATFORM=offscreen
+          FB=build/fotobox
+
+          # Muessen mit 0 enden.
+          for opt in --version --help --dump-config; do
+            echo "--- $opt"
+            "$FB" "$opt" > /dev/null
+          done
+
+          # Ohne Kamera und ohne GPIO-Chip melden diese Befehle einen Fehler
+          # (Rueckgabe 1). Geprueft wird hier, dass sie nicht abstuerzen und
+          # nicht haengen.
+          for opt in --list-cameras --gpio-info; do
+            echo "--- $opt"
+            rc=0
+            timeout 60 "$FB" "$opt" > /dev/null 2>&1 || rc=$?
+            if [ "$rc" -gt 1 ]; then
+              echo "::error::fotobox $opt endete mit $rc"
+              exit 1
+            fi
+          done
+      - name: Oberflaeche aufbauen und abbilden
+        run: |
+          set -euo pipefail
+          export QT_QPA_PLATFORM=offscreen
+          mkdir -p shots
+
+          # Jedes Design und jeder Startzustand werden einmal wirklich
+          # gezeichnet. Ein Stylesheet mit einem nicht ersetzten Platzhalter
+          # oder ein fehlendes Widget faellt hier auf, nicht erst am Event.
+          for theme in retro neon elegant wedding-blush wedding-green pool; do
+            timeout 60 build/fotobox --windowed --camera dummy --liveview dummy \
+              --trigger timer --theme "$theme" --screenshot "shots/$theme.png"
+          done
+          for state in liveview settings countdown shutdown; do
+            timeout 60 build/fotobox --windowed --camera dummy --liveview dummy \
+              --trigger timer --show "$state" --screenshot "shots/zustand-$state.png"
+          done
+
+          for f in shots/*.png; do
+            test -s "$f" || { echo "::error::$f ist leer"; exit 1; }
+            file "$f" | grep -q "PNG image data" || { echo "::error::$f ist kein PNG"; exit 1; }
+          done
+          ls -l shots
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: shots/*.png
+          if-no-files-found: error
+
+  # ------------------------------------------------------------ Warnungen
+  #
+  # Eigener Job, damit ein Paketbau nie an einer Warnung scheitert. Geprueft
+  # wird mit g++, also mit dem Compiler des Zielsystems.
+  warnings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Abhaengigkeiten
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build qt6-base-dev qt6-base-dev-tools qt6-multimedia-dev
+      - uses: actions/checkout@v7
+      - name: Host-Build ohne Warnungen
+        run: |
+          cmake -B build-host -G Ninja -DFOTOBOX_WERROR=ON
+          cmake --build build-host
+      - name: Pi-Build ohne Warnungen
+        run: |
+          cmake -B build-pi -G Ninja -DFOTOBOX_PI=ON -DFOTOBOX_WERROR=ON
+          cmake --build build-pi
+
   # ------------------------------------------------------------ .deb pro Distribution
   build-deb:
     needs: version
@@ -88,8 +189,14 @@ jobs:
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DFOTOBOX_PI=ON \
+            -DFOTOBOX_TESTS=ON \
             -DFOTOBOX_VERSION="${{ needs.version.outputs.version }}"
           cmake --build build
+      - name: Tests auf der Zielarchitektur
+        # Dieselben Tests wie im Job "test", hier aber mit der Qt-Version und
+        # der Architektur des Raspberry Pi. Die Testprogramme landen nicht im
+        # Paket: installiert wird nur das Ziel fotobox.
+        run: ctest --test-dir build --output-on-failure
       - name: Paket bauen
         run: |
           cd build && cpack -G DEB
@@ -97,8 +204,29 @@ jobs:
           dpkg-deb -I *.deb
       - name: Rauchtest
         run: |
+          set -euo pipefail
           apt-get install -y --no-install-recommends ./build/fotobox_*.deb
-          QT_QPA_PLATFORM=offscreen fotobox --version
+          export QT_QPA_PLATFORM=offscreen
+
+          # Das installierte Programm, nicht das aus dem Baum: so faellt ein
+          # fehlender Pfad oder eine fehlende Abhaengigkeit des Pakets auf.
+          for opt in --version --help --dump-config; do
+            echo "--- $opt"
+            fotobox "$opt" > /dev/null
+          done
+
+          # Im Container gibt es keinen GPIO-Chip; erwartet wird Rueckgabe 1,
+          # kein Absturz.
+          rc=0
+          timeout 60 fotobox --gpio-info > /dev/null 2>&1 || rc=$?
+          if [ "$rc" -gt 1 ]; then
+            echo "::error::fotobox --gpio-info endete mit $rc"
+            exit 1
+          fi
+
+          # Die mitgelieferte Unit muss dort liegen, wo systemd --user sucht.
+          test -f /usr/lib/systemd/user/fotobox.service
+          grep -q "^WatchdogSec=" /usr/lib/systemd/user/fotobox.service
       - uses: actions/upload-artifact@v7
         with:
           name: deb-${{ matrix.dist }}
@@ -107,7 +235,7 @@ jobs:
 
   # ------------------------------------------------------------ Release + Apt-Repo
   publish:
-    needs: [version, build-deb]
+    needs: [version, test, warnings, build-deb]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     concurrency:
