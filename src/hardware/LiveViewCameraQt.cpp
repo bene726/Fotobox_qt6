@@ -49,8 +49,11 @@ LiveViewCameraQt::LiveViewCameraQt(const QString& device, int width, int height,
         if (!frame.isValid())
             return;
 
-        // Vor dem Umwandeln fragen: toImage() dekodiert das Bild, und das ist
-        // der teure Teil. Ein verworfenes Bild kostet so gut wie nichts.
+        // Beides vor dem Umwandeln fragen: toImage() dekodiert das Bild, und
+        // das ist der teure Teil. Ein verworfenes Bild kostet so gut wie
+        // nichts.
+        if (isPaused())
+            return;
         if (!m_gate.accept(QDateTime::currentMSecsSinceEpoch()))
             return;
 

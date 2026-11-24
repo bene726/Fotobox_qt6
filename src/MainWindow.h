@@ -94,6 +94,7 @@ private:
     void showMessage(const QString& text, int ms = 3000);
 
     void refreshStorage();   // freier Platz im Bildordner
+    void updateLivePause();  // Livebild anhalten, solange es verdeckt ist
 
     Config cfg;
     Theme theme;

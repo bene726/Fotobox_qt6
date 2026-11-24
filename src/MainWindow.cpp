@@ -551,6 +551,24 @@ void MainWindow::setState(State s)
         return;
     qInfo() << "Zustand:" << stateName(state) << "->" << stateName(s);
     state = s;
+    updateLivePause();
+}
+
+// Das Livebild wird nur angehalten, wenn es wirklich nichts zu sehen gibt:
+// in der Fotoshow liegt ein deckender, bildschirmfuellender Stapel darueber.
+//
+// Beim angezeigten Einzelfoto gerade nicht - das wird unter Beibehaltung des
+// Seitenverhaeltnisses eingepasst, an den Raendern bleibt das Livebild sichtbar.
+// Und steht die Fotoshow ohne Bilder da, ist ebenfalls nichts verdeckt.
+void MainWindow::updateLivePause()
+{
+    if (!liveCam)
+        return;
+    const bool verdeckt = state == State::Slideshow && photoOverlay->isVisible();
+    if (verdeckt != liveCam->isPaused())
+        qInfo() << (verdeckt ? "Livebild angehalten (von der Fotoshow verdeckt)"
+                             : "Livebild laeuft wieder");
+    liveCam->setPaused(verdeckt);
 }
 
 void MainWindow::enterSlideshow()
@@ -589,6 +607,7 @@ void MainWindow::showNextSlide()
 
     if (slideshowImages.isEmpty()) {
         photoOverlay->hide();
+        updateLivePause();   // ohne Bilder ist das Livebild wieder zu sehen
         return;
     }
 
@@ -609,6 +628,7 @@ void MainWindow::showNextSlide()
         slidesBefore.removeLast();
     slideSource = pix;
     renderStack();
+    updateLivePause();   // der Stapel verdeckt das Livebild jetzt
 }
 
 void MainWindow::enterLiveView()
@@ -617,6 +637,7 @@ void MainWindow::enterLiveView()
     slideshowTimer.stop();
     photoTimer.stop();
     photoOverlay->hide();
+    updateLivePause();
     overlaySource = QPixmap();
     slideSource = QPixmap();
     slidesBefore.clear();

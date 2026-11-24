@@ -21,9 +21,21 @@ public:
 
     QImage lastFrame() const { return m_lastFrame; }
 
+    // Waehrend der Diashow liegt ein deckender, bildschirmfuellender Stapel
+    // ueber dem Livebild. Jedes Bild, das dann noch umgewandelt wird, ist
+    // Arbeit fuer den Papierkorb - und die Box steht einen Abend lang
+    // ueberwiegend genau dort.
+    //
+    // Angehalten wird nur das Umwandeln, nicht die Kamera: ein Neustart der
+    // Kamera dauert und kann scheitern. Die Bilder werden weiter entgegen-
+    // genommen und verworfen.
+    void setPaused(bool paused) { m_paused = paused; }
+    bool isPaused() const { return m_paused; }
+
 signals:
     void frameReady(const QImage& frame);
 
 private:
     QImage m_lastFrame;
+    bool m_paused = false;
 };

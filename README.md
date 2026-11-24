@@ -243,6 +243,13 @@ Dekodieren ist der teure Teil, ein verworfenes Bild kostet fast nichts.
 Begrenzt wird nur, wenn `liveViewFps` unter der Bildrate der Kamera liegt;
 beim Start steht die wirksame Grenze im Protokoll.
 
+Während der **Fotoshow** wird das Livebild ganz angehalten: dort liegt ein
+deckender, bildschirmfüllender Stapel darüber, jede Umwandlung wäre für den
+Papierkorb. Einen Abend lang steht die Box überwiegend genau dort. Die
+Kamera läuft dabei weiter – angehalten wird nur das Umwandeln, damit das
+Livebild beim Auslösen sofort wieder da ist. Im Protokoll steht dazu
+„Livebild angehalten (von der Fotoshow verdeckt)".
+
 Nachträglich beim Dekodieren zu verkleinern bringt übrigens nichts: libjpeg
 kann dabei nur in Achteln verkleinern, und die üblichen Verhältnisse sind
 keine. Die Fotobox schreibt beim ersten Bild einen Hinweis ins Protokoll,

@@ -90,6 +90,11 @@ void LiveViewCameraRpicam::onReadyRead()
         const QByteArray frame = m_buffer.mid(start, end + 2 - start);
         m_buffer.remove(0, end + 2);
 
+        // Angehalten: das Bild muss trotzdem aus dem Puffer, sonst laeuft die
+        // Pipe voll. Nur das Dekodieren entfaellt - und das ist der Aufwand.
+        if (isPaused())
+            continue;
+
         QImage img = QImage::fromData(frame, "JPEG");
         if (!img.isNull())
             emit frameReady(img);

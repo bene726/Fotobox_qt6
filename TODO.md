@@ -66,7 +66,8 @@ und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
 - [ ] ~~Akkustand der Kamera anzeigen~~ – entfällt: die Kamera hängt am Netzteil
 - [x] Uhrzeit und Datum im Einstellungsfenster
 - [ ] Ton beim Countdown (drei Pieptöne, Auslösergeräusch)
-- [ ] **`liveViewFps` am Pi auf 20 setzen.** Dort hängt eine USB-Webcam am
+- [x] Livebild während der Fotoshow anhalten – dort ist es vollständig verdeckt
+- [x] **`liveViewFps` am Pi auf 20 setzen.** Dort hängt eine USB-Webcam am
       Qt-Backend, die Auflösung soll bei 1280×720 bleiben. Die Bildrate ist damit
       der einzige Schalter, der die Schärfe nicht antastet – rund ein Drittel
       weniger Rechenzeit. Im Protokoll muss danach „Verarbeitet werden hoechstens
