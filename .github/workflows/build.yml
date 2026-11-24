@@ -392,6 +392,7 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
+      actions: read        # fuer die Artefaktliste des eigenen Laufs
       pages: write
       id-token: write
     environment:
@@ -410,14 +411,37 @@ jobs:
         with:
           path: public
 
-      # Die Artefaktliste von GitHub zeigt ein gerade hochgeladenes Paket
-      # manchmal noch nicht an. deploy-pages bricht dann mit "No artifacts
-      # named github-pages were found" ab, obwohl das Artefakt da ist - in
-      # Lauf #28 lag es mit 8,4 MB vor, der Schritt sah aber nur die beiden
-      # aelteren. Je schneller der Lauf, desto wahrscheinlicher das Rennen.
+      # Die Artefaktliste von GitHub kennt ein gerade hochgeladenes Paket erst
+      # mit ein paar Sekunden Verzug. deploy-pages startet aber eine Sekunde
+      # nach dem Hochladen und bricht dann mit "No artifacts named
+      # github-pages were found" ab - obwohl das Artefakt da ist. In Lauf #28
+      # lag es mit 8,4 MB vor, der Schritt sah nur die beiden aelteren.
       #
-      # Ein zweiter Anlauf nach kurzer Pause genuegt. Schlaegt auch der fehl,
-      # ist es kein Rennen und der Job soll rot werden.
+      # Also warten, bis es wirklich sichtbar ist, statt den Fehler erst
+      # auszuloesen und dann aufzufangen. Das dauert meist wenige Sekunden,
+      # und nur solange es noetig ist.
+      - name: Warten, bis das Artefakt sichtbar ist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            # Erst einsammeln, dann suchen. Ein "gh ... | grep -q" wuerde gh
+            # ein SIGPIPE schicken, und mit pipefail gaelte der Fund als Fehler.
+            namen=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+                      --jq '.artifacts[].name' 2>/dev/null || true)
+            if printf '%s\n' "$namen" | grep -qx 'github-pages'; then
+              echo "Artefakt nach $(( (i - 1) * 2 )) s in der Liste."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::warning::Artefakt nach 60 s nicht in der Liste; Veroeffentlichung wird es trotzdem versuchen."
+
+      # Bleibt als Netz: wenn es doch einmal schiefgeht, soll ein zweiter
+      # Anlauf folgen, statt den ganzen Lauf rot zu faerben. Nach dem Warten
+      # oben sollte er nicht mehr noetig sein - meldet er sich im Protokoll,
+      # reicht die Wartezeit nicht.
       - id: deploy
         uses: actions/deploy-pages@v5
         continue-on-error: true
