@@ -210,20 +210,43 @@ MJPEG-Einzelbild wird dekodiert, dreißigmal je Sekunde. Gemessen an einem
 | Schritt | Zeit je Bild |
 |---|---|
 | Dekodieren | 5,5 ms |
-| Umwandeln und Verkleinern | 0,7 ms |
+| Umwandeln und Skalieren | 0,7 ms |
 
-Die Rechenzeit hängt also fast nur an der Zahl der gelieferten Bildpunkte.
-**Stell `liveViewWidth` und `liveViewHeight` auf die Auflösung deines
-Bildschirms** – dann liefert die Kamera gleich passend und es wird gar nicht
-mehr verkleinert. Von 1280×720 auf 1024×600 spart das rund ein Drittel.
+**Die Rechenzeit hängt fast nur daran, wie viele Bildpunkte die Kamera
+liefert – nicht daran, wie groß der Bildschirm ist.** Das Skalieren selbst
+kostet kaum etwas, und ob glatt oder schnell skaliert wird, ist fast egal
+(gemessen 6,66 gegen 6,58 ms).
 
-Nachträglich lässt sich das nicht aufholen: libjpeg kann beim Dekodieren nur
-in Achteln verkleinern, und 1024/1280 ist keines. Die Fotobox schreibt beim
-ersten Bild einen Hinweis ins Protokoll, wenn die Auflösungen auseinanderliegen.
+Daraus folgt die Regel: **die kleinste Auflösung wählen, die noch gut
+aussieht.** Ein Livebild ist eine Vorschau, in die jemand hineinschaut, um
+sich die Haare zu richten – nicht das Foto. Gemessen an einem 1920×1080-Schirm:
+
+| `liveViewWidth`×`liveViewHeight` | Zeit je Bild | CPU bei 30 fps |
+|---|---|---|
+| 1920×1080 | 12,85 ms | 38,6 % |
+| 1280×720 (Standard) | 6,66 ms | 20,0 % |
+| 960×540 | 3,92 ms | 11,8 % |
+
+Die Auflösung an den Bildschirm anzugleichen lohnt sich also nur, wenn der
+Bildschirm **kleiner** ist als das, was die Kamera heute liefert. Bei einem
+größeren Bildschirm ist es genau der falsche Weg: er verdoppelt den Aufwand,
+ohne dass ein einziges Detail dazukäme.
+
+`liveViewFps` wirkt linear und unabhängig davon. 20 statt 30 Bilder je
+Sekunde sind für eine Vorschau reichlich und sparen ein Drittel.
+
+Nachträglich beim Dekodieren zu verkleinern bringt übrigens nichts: libjpeg
+kann dabei nur in Achteln verkleinern, und die üblichen Verhältnisse sind
+keine. Die Fotobox schreibt beim ersten Bild einen Hinweis ins Protokoll,
+wenn die Kamera mehr Bildpunkte liefert, als angezeigt werden.
 
 Zum Nachsehen, was die Fotobox wirklich verbraucht:
 ```bash
 systemctl --user status fotobox
+```
+Die Bildschirmauflösung steht in:
+```bash
+for m in /sys/class/drm/*/modes; do [ -s "$m" ] && echo "$m -> $(head -1 "$m")"; done
 ```
 Die Zeile `CPU:` im Verhältnis zur Laufzeit sagt es – 20 Minuten CPU bei
 28 Minuten Laufzeit sind etwa 70 % eines Kerns.

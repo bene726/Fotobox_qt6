@@ -66,8 +66,11 @@ und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
 - [ ] ~~Akkustand der Kamera anzeigen~~ – entfällt: die Kamera hängt am Netzteil
 - [x] Uhrzeit und Datum im Einstellungsfenster
 - [ ] Ton beim Countdown (drei Pieptöne, Auslösergeräusch)
-- [ ] `liveViewWidth`/`liveViewHeight` am Pi auf die Bildschirmauflösung setzen –
-      spart rund ein Drittel der Rechenzeit fürs Livebild (siehe README)
+- [ ] Livebild am Pi kleiner einstellen. Der Bildschirm ist 1920×1080, die Kamera
+      liefert 1280×720 – es wird also hoch-, nicht herunterskaliert. Nicht an den
+      Bildschirm angleichen (das verdoppelt den Aufwand), sondern `liveViewWidth`
+      auf 960 und `liveViewHeight` auf 540, dazu `liveViewFps` auf 20. Zusammen
+      rund 60 % weniger Rechenzeit fürs Livebild (Messung in der README).
 - [ ] „Nochmal": letztes Foto verwerfen, statt es zu löschen nach `verworfen/` schieben
 - [x] Diashow abschaltbar, Wartezeit im Menü einstellbar
 - [x] Fotoshow als Stapel von Abzügen, damit sie vom Livebild unterscheidbar ist
