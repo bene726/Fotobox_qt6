@@ -392,7 +392,6 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
-      actions: read        # fuer die Artefaktliste des eigenen Laufs
       pages: write
       id-token: write
     environment:
@@ -411,32 +410,20 @@ jobs:
         with:
           path: public
 
-      # Die Artefaktliste von GitHub kennt ein gerade hochgeladenes Paket erst
-      # mit ein paar Sekunden Verzug. deploy-pages startet aber eine Sekunde
-      # nach dem Hochladen und bricht dann mit "No artifacts named
-      # github-pages were found" ab - obwohl das Artefakt da ist. In Lauf #28
-      # lag es mit 8,4 MB vor, der Schritt sah nur die beiden aelteren.
+      # deploy-pages findet das gerade hochgeladene Artefakt nicht, wenn es
+      # sofort danach startet: "No artifacts named github-pages were found",
+      # obwohl es da ist (in Lauf #28 mit 8,4 MB).
       #
-      # Also warten, bis es wirklich sichtbar ist, statt den Fehler erst
-      # auszuloesen und dann aufzufangen. Das dauert meist wenige Sekunden,
-      # und nur solange es noetig ist.
-      - name: Warten, bis das Artefakt sichtbar ist
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 30); do
-            # Erst einsammeln, dann suchen. Ein "gh ... | grep -q" wuerde gh
-            # ein SIGPIPE schicken, und mit pipefail gaelte der Fund als Fehler.
-            namen=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
-                      --jq '.artifacts[].name' 2>/dev/null || true)
-            if printf '%s\n' "$namen" | grep -qx 'github-pages'; then
-              echo "Artefakt nach $(( (i - 1) * 2 )) s in der Liste."
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::warning::Artefakt nach 60 s nicht in der Liste; Veroeffentlichung wird es trotzdem versuchen."
+      # Ein erster Versuch, auf die Artefaktliste der REST-API zu warten, hat
+      # nichts gebracht: die kennt das Artefakt schon nach einer Sekunde,
+      # deploy-pages aber noch nicht - es fragt einen anderen Dienst. In Lauf
+      # #31 war die Pruefung nach 1 s zufrieden und der Versuch danach trotzdem
+      # rot. Also nicht noch einmal auf diesem Weg versuchen.
+      #
+      # Was zweimal nachweislich reicht, sind 20 Sekunden: so lang ist die
+      # Pause vor dem zweiten Anlauf, und der ging beide Male durch.
+      - name: Dem Artefakt Zeit geben
+        run: sleep 20
 
       # Bleibt als Netz: wenn es doch einmal schiefgeht, soll ein zweiter
       # Anlauf folgen, statt den ganzen Lauf rot zu faerben. Nach dem Warten
