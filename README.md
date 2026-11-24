@@ -201,6 +201,33 @@ dtoverlay=pwm-pio,gpio=12
 Der Abschnitt `[all]` davor stellt sicher, dass die Zeile nicht in einem
 modellspezifischen Block landet, falls die Datei welche enthält.
 
+#### Rechenzeit des Livebilds
+
+Das Livebild ist der mit Abstand teuerste Dauerbetrieb der Fotobox: jedes
+MJPEG-Einzelbild wird dekodiert, dreißigmal je Sekunde. Gemessen an einem
+1280×720-Bild:
+
+| Schritt | Zeit je Bild |
+|---|---|
+| Dekodieren | 5,5 ms |
+| Umwandeln und Verkleinern | 0,7 ms |
+
+Die Rechenzeit hängt also fast nur an der Zahl der gelieferten Bildpunkte.
+**Stell `liveViewWidth` und `liveViewHeight` auf die Auflösung deines
+Bildschirms** – dann liefert die Kamera gleich passend und es wird gar nicht
+mehr verkleinert. Von 1280×720 auf 1024×600 spart das rund ein Drittel.
+
+Nachträglich lässt sich das nicht aufholen: libjpeg kann beim Dekodieren nur
+in Achteln verkleinern, und 1024/1280 ist keines. Die Fotobox schreibt beim
+ersten Bild einen Hinweis ins Protokoll, wenn die Auflösungen auseinanderliegen.
+
+Zum Nachsehen, was die Fotobox wirklich verbraucht:
+```bash
+systemctl --user status fotobox
+```
+Die Zeile `CPU:` im Verhältnis zur Laufzeit sagt es – 20 Minuten CPU bei
+28 Minuten Laufzeit sind etwa 70 % eines Kerns.
+
 #### Welches Overlay auf welchem Modell
 
 | Overlay | Läuft auf | Erlaubte Pins | Erzeugt von |

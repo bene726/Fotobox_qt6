@@ -14,6 +14,10 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 
+#include <csignal>
+#include <sys/resource.h>
+#include <unistd.h>
+
 #include "core/Config.h"
 
 namespace {
@@ -27,6 +31,46 @@ bool writeFile(const QString& path, const QByteArray& text)
         return false;
     return f.write(text) == text.size();
 }
+
+// Macht jeden Schreibvorgang dieses Prozesses scheitern, so wie es eine volle
+// Karte tut: das Anlegen der Datei geht noch (Groesse 0), das Schreiben nicht.
+//
+// Ueber RLIMIT_FSIZE statt ueber einen schreibgeschuetzten Ordner, denn der
+// traefe nur open(). Geprueft werden soll aber der Fall danach - der, bei dem
+// frueher niemand hinsah.
+class FullDisk
+{
+public:
+    FullDisk()
+    {
+        // Ohne das beendet das Signal den Testlauf, statt write() scheitern
+        // zu lassen.
+        m_oldHandler = ::signal(SIGXFSZ, SIG_IGN);
+        if (::getrlimit(RLIMIT_FSIZE, &m_old) != 0)
+            return;
+        rlimit neu = m_old;
+        neu.rlim_cur = 0;
+        m_active = ::setrlimit(RLIMIT_FSIZE, &neu) == 0;
+    }
+
+    ~FullDisk()
+    {
+        if (m_active)
+            ::setrlimit(RLIMIT_FSIZE, &m_old);
+        if (m_oldHandler != SIG_ERR)
+            ::signal(SIGXFSZ, m_oldHandler);
+    }
+
+    FullDisk(const FullDisk&) = delete;
+    FullDisk& operator=(const FullDisk&) = delete;
+
+    bool active() const { return m_active; }
+
+private:
+    rlimit m_old{};
+    bool m_active = false;
+    void (*m_oldHandler)(int) = SIG_ERR;
+};
 
 QJsonObject readJson(const QString& path)
 {
@@ -71,6 +115,9 @@ private slots:
     void saveKeepsForeignKeys();
     void saveCreatesMissingDirectory();
     void saveRoundTrip();
+    void saveReportsFailure();
+    void failedSaveKeepsPreviousFile();
+    void saveLeavesNoLeftovers();
 
     void toJsonMasksPassword();
 
@@ -555,6 +602,77 @@ void TestConfig::saveRoundTrip()
     QCOMPARE(back.showQr, c.showQr);
     QCOMPARE(back.ledBrightness, c.ledBrightness);
     QCOMPARE(back.liveViewDevice, c.liveViewDevice);
+}
+
+void TestConfig::saveReportsFailure()
+{
+    const QString datei = m_tmp.filePath("voll/config.json");
+    QVERIFY(QDir().mkpath(QFileInfo(datei).absolutePath()));
+
+    Config c = Config::defaults();
+    c.sourcePath = datei;
+
+    QTest::ignoreMessage(QtWarningMsg, QRegularExpression("Konfiguration nicht"));
+    bool ok = true;
+    {
+        const FullDisk voll;
+        QVERIFY2(voll.active(), "Schreibgrenze liess sich nicht setzen");
+        ok = c.save();
+    }
+
+    // Frueher wurde der Rueckgabewert von write() nicht geprueft: save()
+    // meldete Erfolg, und auf dem Display stand "Einstellungen gespeichert",
+    // obwohl nichts angekommen war.
+    QVERIFY2(!ok, "save() meldet Erfolg, obwohl nichts geschrieben wurde");
+}
+
+void TestConfig::failedSaveKeepsPreviousFile()
+{
+    const QString datei = m_tmp.filePath("voll2/config.json");
+    QVERIFY(QDir().mkpath(QFileInfo(datei).absolutePath()));
+    const QByteArray vorher = R"({"Behaviour": {"theme": "neon", "countdownSeconds": 9}})";
+    QVERIFY(writeFile(datei, vorher));
+
+    Config c = Config::defaults();
+    c.sourcePath = datei;
+    c.theme = "pool";
+
+    QTest::ignoreMessage(QtWarningMsg, QRegularExpression("Konfiguration nicht"));
+    bool ok = true;
+    {
+        const FullDisk voll;
+        QVERIFY(voll.active());
+        ok = c.save();
+    }
+    QVERIFY(!ok);
+
+    // Darum geht es beim atomaren Ersetzen. Frueher leerte Truncate die Datei
+    // sofort; schlug das Schreiben danach fehl, blieb nichts uebrig. Jetzt
+    // steht weiter die alte Fassung da.
+    QFile f(datei);
+    QVERIFY(f.open(QIODevice::ReadOnly));
+    QCOMPARE(f.readAll(), vorher);
+    f.close();
+
+    const Config zurueck = Config::load(datei);
+    QCOMPARE(zurueck.theme, QStringLiteral("neon"));
+    QCOMPARE(zurueck.countdownSeconds, 9);
+}
+
+void TestConfig::saveLeavesNoLeftovers()
+{
+    const QString ordner = m_tmp.filePath("sauber");
+    QVERIFY(QDir().mkpath(ordner));
+
+    Config c = Config::defaults();
+    c.sourcePath = ordner + "/config.json";
+    QVERIFY(c.save());
+    QVERIFY(c.save());   // zweimal, damit auch ein Ersetzen vorkommt
+
+    // Die Nebendatei von QSaveFile darf nicht liegen bleiben: sonst sammelt
+    // sich im Konfigurationsordner mit jedem Speichern eine mehr an.
+    QCOMPARE(QDir(ordner).entryList(QDir::Files | QDir::Hidden),
+             QStringList{"config.json"});
 }
 
 void TestConfig::toJsonMasksPassword()

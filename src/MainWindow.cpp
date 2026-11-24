@@ -488,13 +488,47 @@ void MainWindow::showMessage(const QString& text, int ms)
 
 void MainWindow::onLiveFrame(const QImage& frame)
 {
+    const QSize anzeige = liveView->size();
+
     if (!liveFrameSeen) {
         liveFrameSeen = true;
         liveWatchdog.stop();
         qInfo() << "Erstes Livebild erhalten:" << frame.width() << "x" << frame.height();
+
+        // Gemessen an einem 1280x720-Einzelbild: das Dekodieren kostet rund
+        // 5,5 ms, das Umwandeln und Verkleinern zusammen 0,7 ms. Der Aufwand
+        // haengt also fast nur an der Zahl der Bildpunkte, die die Kamera
+        // liefert - und die laeuft dreissigmal je Sekunde auf.
+        //
+        // Deshalb lohnt es sich, die Kamera gleich in Anzeigegroesse liefern
+        // zu lassen, statt hier zu verkleinern. Nachtraeglich laesst sich das
+        // nicht aufholen: libjpeg kann beim Dekodieren nur in Achteln
+        // verkleinern, und 1024/1280 ist keines.
+        // Verglichen werden Bildpunkte, nicht Kantenlaengen: die Rechenzeit
+        // haengt an der Flaeche. 1280x720 hat halb so viele Punkte mehr als
+        // 1024x600, obwohl keine Kante um die Haelfte laenger ist.
+        const qint64 kommt = qint64(frame.width()) * frame.height();
+        const qint64 gebraucht = qint64(anzeige.width()) * anzeige.height();
+        if (gebraucht > 0 && kommt > gebraucht * 5 / 4) {
+            qInfo().noquote()
+                << QString("Hinweis: Das Livebild kommt mit %1x%2, angezeigt wird %3x%4 - "
+                           "%5 % der Bildpunkte werden umsonst dekodiert. Mit "
+                           "liveViewWidth=%3 und liveViewHeight=%4 in der Konfiguration "
+                           "liefert die Kamera gleich passend.")
+                       .arg(frame.width()).arg(frame.height())
+                       .arg(anzeige.width()).arg(anzeige.height())
+                       .arg((kommt - gebraucht) * 100 / kommt);
+        }
+    }
+
+    // Passt das Bild schon, wird nicht skaliert. Genau dafuer ist der Hinweis
+    // oben da.
+    if (frame.size() == anzeige) {
+        liveView->setPixmap(QPixmap::fromImage(frame));
+        return;
     }
     liveView->setPixmap(QPixmap::fromImage(frame).scaled(
-        liveView->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        anzeige, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 // ---------------------------------------------------------------- Zustaende

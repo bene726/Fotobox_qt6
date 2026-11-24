@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QSaveFile>
 #include <QJsonObject>
 #include <QStandardPaths>
 
@@ -237,12 +238,33 @@ bool Config::save()
     hw["liveViewDevice"] = liveViewDevice;
     root["Hardware"] = hw;
 
-    QFile out(sourcePath);
-    if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        qWarning() << "Konfiguration nicht schreibbar:" << sourcePath;
+    // QSaveFile schreibt in eine Nebendatei und benennt sie erst beim commit()
+    // um. Das ist unter POSIX ein einziger Schritt: entweder steht die neue
+    // Fassung da oder die alte - nie eine halbe.
+    //
+    // Fuer eine Fotobox ist das keine Theorie. Sie wird am Ende des Abends am
+    // Stecker ausgeschaltet, und mit dem frueheren Truncate war die Datei in
+    // dem Moment leer, in dem der Strom wegging.
+    QSaveFile out(sourcePath);
+    if (!out.open(QIODevice::WriteOnly)) {
+        qWarning() << "Konfiguration nicht schreibbar:" << sourcePath << out.errorString();
         return false;
     }
-    out.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+
+    const QByteArray text = QJsonDocument(root).toJson(QJsonDocument::Indented);
+    if (out.write(text) != text.size()) {
+        // Vor allem bei voller Karte. Frueher blieb das unbemerkt und auf dem
+        // Display stand trotzdem "Einstellungen gespeichert".
+        qWarning() << "Konfiguration nicht vollstaendig geschrieben:" << sourcePath
+                   << out.errorString();
+        out.cancelWriting();
+        return false;
+    }
+    if (!out.commit()) {
+        qWarning() << "Konfiguration nicht zu ersetzen:" << sourcePath << out.errorString();
+        return false;
+    }
+
     qInfo() << "Konfiguration gespeichert:" << sourcePath;
     return true;
 }
