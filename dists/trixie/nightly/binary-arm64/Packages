@@ -8,24 +8,6 @@ Package: fotobox
 Priority: optional
 Recommends: rpicam-apps, gpiod
 Section: graphics
-Version: 0.1.0+git202611232039.48.g8fe995a
-Installed-Size: 5610
-Filename: pool/trixie/nightly/fotobox_0.1.0+git202611232039.48.g8fe995a_arm64_trixie.deb
-Size: 1676836
-MD5sum: 3f9a3bcce5743adc13a9111026ea18d4
-SHA1: 2df9c64e79c076b9cb3cba2f1be378c840f84c4f
-SHA256: 4bb08e9c581cd33760ada75da7e3e42bb70c70d1ad402b4c074dc115c9237e2b
-
-Architecture: arm64
-Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 14)
-Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
- Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
-Homepage: https://github.com/bene726/Fotobox_qt6
-Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
-Package: fotobox
-Priority: optional
-Recommends: rpicam-apps, gpiod
-Section: graphics
 Version: 0.1.0+git202611240634.49.g8b0335e
 Installed-Size: 5610
 Filename: pool/trixie/nightly/fotobox_0.1.0+git202611240634.49.g8b0335e_arm64_trixie.deb
@@ -87,3 +69,21 @@ Size: 1679602
 MD5sum: 4cbb3e652f459f79175eb306a81a9b67
 SHA1: b13ca1993e9b5278287b9e8bd70d406d2630f40b
 SHA256: 2d2a03b4ef013172fd859913a00889b20b7dd200f230c78c94dce5bce0badd7c
+
+Architecture: arm64
+Depends: gphoto2, libc6 (>= 2.34), libgcc-s1 (>= 3.0), libqt6core6t64 (>= 6.8.2), libqt6gui6 (>= 6.2.0), libqt6multimedia6 (>= 6.6.1), libqt6widgets6 (>= 6.1.2), libstdc++6 (>= 14)
+Description: Fotobox: Livebild, DSLR-Ausloesung, Slideshow und QR-Code
+ Qt6-Fotobox fuer Raspberry Pi mit Pi-Kamera als Livebild und DSLR ueber gphoto2.
+Homepage: https://github.com/bene726/Fotobox_qt6
+Maintainer: Bene <46480461+BenediktCyranka@users.noreply.github.com>
+Package: fotobox
+Priority: optional
+Recommends: rpicam-apps, gpiod
+Section: graphics
+Version: 0.1.0+git202611240755.53.g6fb5a87
+Installed-Size: 5611
+Filename: pool/trixie/nightly/fotobox_0.1.0+git202611240755.53.g6fb5a87_arm64_trixie.deb
+Size: 1679930
+MD5sum: 47a0583332a46c05d969632a7e4d632b
+SHA1: 8ef81891e331ab5d47afef4a8293ca1c6effa22c
+SHA256: f7e4df72fd21ea4a114a8d0b5d4b0b319fa163919deec508099635158d45b578
