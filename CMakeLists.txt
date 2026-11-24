@@ -28,6 +28,7 @@ add_library(fotobox_core STATIC
     src/core/Config.cpp
     src/core/ConfigWatcher.cpp
     src/core/FileWatcher.cpp
+    src/core/FrameGate.cpp
     src/core/Storage.cpp
     src/core/SystemdWatchdog.cpp
 

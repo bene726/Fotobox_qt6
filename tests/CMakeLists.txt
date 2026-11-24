@@ -8,6 +8,7 @@
 set(FOTOBOX_TESTS_LIST
     config
     filewatcher
+    framegate
     storage
     theme
     qrencoder

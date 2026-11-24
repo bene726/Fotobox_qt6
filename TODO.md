@@ -66,11 +66,11 @@ und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
 - [ ] ~~Akkustand der Kamera anzeigen~~ – entfällt: die Kamera hängt am Netzteil
 - [x] Uhrzeit und Datum im Einstellungsfenster
 - [ ] Ton beim Countdown (drei Pieptöne, Auslösergeräusch)
-- [ ] Livebild am Pi kleiner einstellen. Der Bildschirm ist 1920×1080, die Kamera
-      liefert 1280×720 – es wird also hoch-, nicht herunterskaliert. Nicht an den
-      Bildschirm angleichen (das verdoppelt den Aufwand), sondern `liveViewWidth`
-      auf 960 und `liveViewHeight` auf 540, dazu `liveViewFps` auf 20. Zusammen
-      rund 60 % weniger Rechenzeit fürs Livebild (Messung in der README).
+- [ ] **`liveViewFps` am Pi auf 20 setzen.** Dort hängt eine USB-Webcam am
+      Qt-Backend, die Auflösung soll bei 1280×720 bleiben. Die Bildrate ist damit
+      der einzige Schalter, der die Schärfe nicht antastet – rund ein Drittel
+      weniger Rechenzeit. Im Protokoll muss danach „Verarbeitet werden hoechstens
+      20 Bilder je Sekunde" stehen.
 - [ ] „Nochmal": letztes Foto verwerfen, statt es zu löschen nach `verworfen/` schieben
 - [x] Diashow abschaltbar, Wartezeit im Menü einstellbar
 - [x] Fotoshow als Stapel von Abzügen, damit sie vom Livebild unterscheidbar ist

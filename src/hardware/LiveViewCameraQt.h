@@ -1,5 +1,6 @@
 #pragma once
 #include "LiveViewCamera.h"
+#include "core/FrameGate.h"
 
 #include <QCamera>
 #include <QSize>
@@ -14,8 +15,12 @@ class LiveViewCameraQt : public LiveViewCamera
 public:
     // device: Teil des Namens oder der Kennung; leer = Standardkamera
     // width/height: gewuenschte Aufloesung; die naechstgelegene wird genommen
+    // fps: Obergrenze fuer die verarbeiteten Bilder; 0 nimmt alles
+    //
+    // Die Bildrate laesst sich einer Webcam nicht vorgeben - sie liefert, was
+    // ihr Format hergibt. Deshalb wird hier verworfen statt verlangt.
     LiveViewCameraQt(const QString& device = {}, int width = 0, int height = 0,
-                     QObject* parent = nullptr);
+                     int fps = 0, QObject* parent = nullptr);
     ~LiveViewCameraQt() override;
 
     static bool available();
@@ -42,4 +47,5 @@ private:
     QCamera* m_camera = nullptr;
     QMediaCaptureSession m_session;
     QVideoSink m_sink;
+    FrameGate m_gate;
 };

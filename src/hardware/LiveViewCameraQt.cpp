@@ -1,6 +1,7 @@
 #include "LiveViewCameraQt.h"
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDebug>
 #include <QMediaDevices>
 #include <QVideoFrame>
@@ -18,7 +19,8 @@ bool LiveViewCameraQt::available()
     return !QMediaDevices::videoInputs().isEmpty();
 }
 
-LiveViewCameraQt::LiveViewCameraQt(const QString& device, int width, int height, QObject* parent)
+LiveViewCameraQt::LiveViewCameraQt(const QString& device, int width, int height, int fps,
+                                   QObject* parent)
     : LiveViewCamera(parent)
     , m_width(width)
     , m_height(height)
@@ -33,10 +35,25 @@ LiveViewCameraQt::LiveViewCameraQt(const QString& device, int width, int height,
         qInfo() << "  Format:" << m_format.resolution().width() << "x"
                 << m_format.resolution().height() << ", bis" << m_format.maxFrameRate() << "fps";
 
+    // Nur begrenzen, wenn wirklich weniger verlangt wird als die Kamera
+    // liefert. Sonst wuerde der Takt der Kamera gegen die Schranke laufen und
+    // durch sein Schwanken hin und wieder grundlos ein Bild verwerfen.
+    const bool begrenzen = fps > 0
+                           && (m_format.isNull() || fps < m_format.maxFrameRate());
+    m_gate.setFps(begrenzen ? fps : 0);
+    if (begrenzen)
+        qInfo() << "  Verarbeitet werden hoechstens" << fps << "Bilder je Sekunde";
+
     m_session.setVideoSink(&m_sink);
     connect(&m_sink, &QVideoSink::videoFrameChanged, this, [this](const QVideoFrame& frame) {
         if (!frame.isValid())
             return;
+
+        // Vor dem Umwandeln fragen: toImage() dekodiert das Bild, und das ist
+        // der teure Teil. Ein verworfenes Bild kostet so gut wie nichts.
+        if (!m_gate.accept(QDateTime::currentMSecsSinceEpoch()))
+            return;
+
         QImage img = frame.toImage();
         if (!img.isNull())
             emit frameReady(img);
@@ -128,6 +145,7 @@ bool LiveViewCameraQt::setDevice(const QString& device)
 
     m_dev = dev;
     m_format = chooseFormat();
+    m_gate.reset();   // neue Kamera, Zeitrechnung faengt von vorn an
     qInfo() << "Wechsle auf Kamera:" << m_dev.description();
     if (m_camera) {
         m_camera->stop();

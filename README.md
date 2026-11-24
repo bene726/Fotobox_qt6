@@ -235,6 +235,14 @@ ohne dass ein einziges Detail dazukäme.
 `liveViewFps` wirkt linear und unabhängig davon. 20 statt 30 Bilder je
 Sekunde sind für eine Vorschau reichlich und sparen ein Drittel.
 
+Bei einer **USB-Webcam** (`liveView: "qt"`) ist das sogar der einzige
+Schalter, der nichts an der Schärfe ändert: die Bildrate lässt sich einer
+Webcam nicht vorgeben, sie liefert, was ihr Format hergibt. Die Fotobox
+verwirft deshalb überzählige Bilder, **bevor** sie dekodiert werden – das
+Dekodieren ist der teure Teil, ein verworfenes Bild kostet fast nichts.
+Begrenzt wird nur, wenn `liveViewFps` unter der Bildrate der Kamera liegt;
+beim Start steht die wirksame Grenze im Protokoll.
+
 Nachträglich beim Dekodieren zu verkleinern bringt übrigens nichts: libjpeg
 kann dabei nur in Achteln verkleinern, und die üblichen Verhältnisse sind
 keine. Die Fotobox schreibt beim ersten Bild einen Hinweis ins Protokoll,
@@ -341,6 +349,7 @@ src/
 ├── core/                    # Konfiguration, Dateiwatcher
 │   ├── Config.*             # JSON-Konfiguration mit Standardwerten
 │   ├── ConfigWatcher.*      # meldet geänderte Konfigurationsdateien
+│   ├── FrameGate.*          # begrenzt die Bildrate des Livebilds
 │   ├── Storage.*            # freier Platz im Bildordner, Fotos-Schätzung
 │   ├── SystemdWatchdog.*    # Lebenszeichen an systemd
 │   └── FileWatcher.*        # beobachtet den Bildordner
@@ -381,6 +390,7 @@ tests/                       # Qt-Test, ohne Hardware und ohne Bildschirm
 ├── tst_filewatcher.cpp      # Endungen, Sortierung, neue Dateien
 ├── tst_theme.cpp            # jedes Design vollständig
 ├── tst_qrencoder.cpp        # QR-Code gegen die Maße der Norm
+├── tst_framegate.cpp        # Bildratenbegrenzung, ohne Echtzeit gerechnet
 ├── tst_storage.cpp          # Platzpruefung und Fotos-Schätzung
 ├── tst_gphoto.cpp           # Übersetzung der gphoto2-Fehlermeldungen
 └── tst_systemdwatchdog.cpp  # gegen einen nachgebauten systemd-Socket

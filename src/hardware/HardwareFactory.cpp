@@ -63,7 +63,7 @@ LiveViewCamera* createLiveViewCamera(const Config& cfg, QObject* parent)
 #ifdef FOTOBOX_HAS_QTMULTIMEDIA
     if (b == "qt")
         return new LiveViewCameraQt(cfg.liveViewDevice, cfg.liveViewWidth, cfg.liveViewHeight,
-                                    parent);
+                                    cfg.liveViewFps, parent);
 #endif
     if (b != "dummy")
         qWarning() << "Unbekanntes Livebild-Backend" << b << "- nutze dummy";
