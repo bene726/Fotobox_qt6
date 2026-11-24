@@ -396,7 +396,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     steps:
       - name: Apt-Repo aus gh-pages holen
         uses: actions/checkout@v7
@@ -409,5 +409,23 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: public
+
+      # Die Artefaktliste von GitHub zeigt ein gerade hochgeladenes Paket
+      # manchmal noch nicht an. deploy-pages bricht dann mit "No artifacts
+      # named github-pages were found" ab, obwohl das Artefakt da ist - in
+      # Lauf #28 lag es mit 8,4 MB vor, der Schritt sah aber nur die beiden
+      # aelteren. Je schneller der Lauf, desto wahrscheinlicher das Rennen.
+      #
+      # Ein zweiter Anlauf nach kurzer Pause genuegt. Schlaegt auch der fehl,
+      # ist es kein Rennen und der Job soll rot werden.
       - id: deploy
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+      - name: Noch einmal versuchen
+        if: steps.deploy.outcome == 'failure'
+        run: |
+          echo "::warning::Erster Veroeffentlichungsversuch fehlgeschlagen, zweiter folgt."
+          sleep 20
+      - id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
