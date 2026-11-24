@@ -5,25 +5,25 @@ Codename: trixie
 Architectures: arm64
 Components: main nightly
 Description: Fotobox-Pakete fuer Raspberry Pi OS trixie
-Date: Tue, 24 Nov 2026 07:09:18 GMT
+Date: Tue, 24 Nov 2026 07:42:37 GMT
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                0 main/binary-arm64/Packages
  35c270444aff1698297b818b9823bb7a               29 main/binary-arm64/Packages.gz
  20e818068ee1dcc5db27011aeeb012cc               83 main/binary-arm64/Release
- a3dcefb004a33ab823e9675606c67b54             4429 nightly/binary-arm64/Packages
- 96a4ddd48068a3912f379a60751041ef             1098 nightly/binary-arm64/Packages.gz
+ 8ddf44e5bc63934231867517f17a76a6             4429 nightly/binary-arm64/Packages
+ 023b988398f0b63873f7195dfa38c1d6             1098 nightly/binary-arm64/Packages.gz
  05b91b400978226e2503a7ac4a3594ee               86 nightly/binary-arm64/Release
 SHA1:
  da39a3ee5e6b4b0d3255bfef95601890afd80709                0 main/binary-arm64/Packages
  f45f0e8d967294c2999064da10a02d661abd0d6c               29 main/binary-arm64/Packages.gz
  efcaf24c13732b2ae221a25cffa41337a25925f1               83 main/binary-arm64/Release
- 32747bb2de953c5a290bea6e5b8cfa3d32f06893             4429 nightly/binary-arm64/Packages
- 37b96ee7756350e02919d43f2778188a9a319fa8             1098 nightly/binary-arm64/Packages.gz
+ df200259f855519a71c35dd93991689973cdb6b1             4429 nightly/binary-arm64/Packages
+ dd2f163aa3fad4e2f3ad1f36af25e080bfb7be65             1098 nightly/binary-arm64/Packages.gz
  3a7d4827319a627fadba76945c612977eb4e4175               86 nightly/binary-arm64/Release
 SHA256:
  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                0 main/binary-arm64/Packages
  6d800e59ca41dddf7c8435ac74029513bc8ee65af025cb0e4e8ce077d30f80f5               29 main/binary-arm64/Packages.gz
  6017c13245e2b64b05256f01a2203dc28d9beca563203915638b0f1644c2ffd2               83 main/binary-arm64/Release
- 55bc86d9664474b5ae05c0163e70fecef38b15f2e70f5fe134a92008e6de1ded             4429 nightly/binary-arm64/Packages
- 42c673f47c08f76f8cd1aec6abbfbaa94b7f42f794258111b895822195f1e6d5             1098 nightly/binary-arm64/Packages.gz
+ 4ffc4773961b0f3533d20ac62f7eafc9eee9bb857d12d3cb8d0ae667ec4b207d             4429 nightly/binary-arm64/Packages
+ 97c0da38c613038c0e65ce04360ecb0732b6e1fb591a85de38206895d61013d8             1098 nightly/binary-arm64/Packages.gz
  ea44d7db7ca57c39a71a6eeb8bae8ef3b75be57fc0d06ad1a49bf6e256b51b38               86 nightly/binary-arm64/Release
