@@ -332,7 +332,7 @@ tests/                       # Qt-Test, ohne Hardware und ohne Bildschirm
 ├── tst_theme.cpp            # jedes Design vollständig
 ├── tst_qrencoder.cpp        # QR-Code gegen die Maße der Norm
 ├── tst_storage.cpp          # Platzpruefung und Fotos-Schätzung
-├── tst_gphoto.cpp           # Auswertung der gphoto2-Ausgabe (Akkustand)
+├── tst_gphoto.cpp           # Übersetzung der gphoto2-Fehlermeldungen
 └── tst_systemdwatchdog.cpp  # gegen einen nachgebauten systemd-Socket
 ```
 

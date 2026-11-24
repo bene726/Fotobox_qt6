@@ -25,11 +25,6 @@
 - [ ] `partyPath` und `partyname` gemeinsam in `~/Nextcloud/fotobox.json` setzen
 
 ### Sonstiges
-- [ ] **Akkustand am 600D nachprüfen.** Die Anzeige ist eingebaut, ob die Kamera
-      den Wert überhaupt meldet, ist offen. Am Pi einmal von Hand:
-      `gphoto2 --get-config batterylevel` – kommt dort eine Zeile `Current: NN%`,
-      steht der Wert auch in den Einstellungen. Kommt eine Spannung oder ein Wort,
-      bleibt die Anzeige absichtlich leer.
 - [ ] Autostart auf dem Pi testen (Dienst liegt im Paket, ungetestet)
 - [ ] systemd-Watchdog am Pi nachprüfen: nach dem Update
       `systemctl --user show fotobox -p WatchdogUSec -p Restart` (erwartet `WatchdogUSec=30s`)
@@ -49,9 +44,8 @@ und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
       `QDateTime::currentMSecsSinceEpoch()` und am Datei-Deskriptor. Mit einer
       injizierten Uhr und einer Liste von Flanken wären genau die Fälle prüfbar,
       die diese Woche zweimal schiefgegangen sind.
-- [ ] Kamera-Backends: die Fehler­übersetzung in `CameraGPhoto` ließe sich gegen echte
-      gphoto2-Ausgaben prüfen, ohne Kamera – so wie es für den Akkustand schon
-      gemacht ist (`tests/tst_gphoto.cpp`).
+- [x] Fehler­übersetzung in `CameraGPhoto` gegen echte gphoto2-Ausgaben geprüft
+      (`tests/tst_gphoto.cpp`), ohne Kamera.
 
 ---
 
@@ -69,6 +63,7 @@ und auf arm64 und zeichnet dazu jedes Design offscreen. Was dort noch fehlt:
 
 ## Mittelfristig
 - [x] Freien Speicherplatz überwachen, Warnung ab 1 GB bzw. 200 MB
+- [ ] ~~Akkustand der Kamera anzeigen~~ – entfällt: die Kamera hängt am Netzteil
 - [x] Uhrzeit und Datum im Einstellungsfenster
 - [ ] Ton beim Countdown (drei Pieptöne, Auslösergeräusch)
 - [ ] „Nochmal": letztes Foto verwerfen, statt es zu löschen nach `verworfen/` schieben

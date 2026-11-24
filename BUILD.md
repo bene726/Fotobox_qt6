@@ -95,8 +95,8 @@ QT_QPA_PLATFORM=offscreen ./build/tests/tst_config -functions
 Geprüft werden `Config` (Ebenen, Vorrang, kaputte Dateien, Speichern), `FileWatcher`
 (Endungen, Sortierung, neue Dateien), `Storage` (freier Platz, Schätzung der
 verbleibenden Fotos, schreibgeschützter Ordner), `Theme` (jedes Design vollständig),
-der QR-Code gegen die Maße der Norm, das Auswerten der gphoto2-Ausgabe für den
-Akkustand und `SystemdWatchdog` gegen einen nachgebauten systemd-Socket. Was Widgets
+der QR-Code gegen die Maße der Norm, die Übersetzung der gphoto2-Fehlermeldungen
+und `SystemdWatchdog` gegen einen nachgebauten systemd-Socket. Was Widgets
 oder echte Hardware braucht, steht noch aus – siehe TODO.md.
 
 ### Warnungen

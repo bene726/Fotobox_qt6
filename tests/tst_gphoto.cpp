@@ -1,9 +1,12 @@
-// Tests fuer das Auslesen des Akkustands aus der Ausgabe von gphoto2.
+// Tests fuer die Uebersetzung der gphoto2-Meldungen.
 //
-// Die Ausgabe kommt von einem fremden Programm und haengt am Kameramodell.
-// Nicht jeder Body meldet Prozent: manche nennen eine Spannung, manche nur
-// ein Wort. Wird so etwas als Zahl gelesen, stuende in der Fotobox "Akku: 7 %"
-// bei vollem Akku - schlimmer als gar keine Anzeige.
+// gphoto2 meldet technisch und auf Englisch. Was davon auf dem Display der
+// Fotobox landet, entscheidet diese Zuordnung - und sie ist das einzige, was
+// jemand am Abend zu lesen bekommt. Schickt sie zur falschen Ursache, sucht
+// man an der falschen Stelle.
+//
+// Geprueft wird gegen Ausgaben, wie gphoto2 sie wirklich schreibt. Eine
+// Kamera braucht es dafuer nicht.
 
 #include <QtTest>
 
@@ -14,62 +17,106 @@ class TestGPhoto : public QObject
     Q_OBJECT
 
 private slots:
-    void parseBatteryLevel_data();
-    void parseBatteryLevel();
+    void friendlyError_data();
+    void friendlyError();
+
+    void fullStorageDoesNotBlameTheCamera_data();
+    void fullStorageDoesNotBlameTheCamera();
+
+    void unknownMessagesArePassedThrough();
 };
 
-void TestGPhoto::parseBatteryLevel_data()
+void TestGPhoto::friendlyError_data()
 {
-    QTest::addColumn<QString>("output");
-    QTest::addColumn<int>("percent");
+    QTest::addColumn<QString>("raw");
+    QTest::addColumn<QString>("enthaelt");
 
-    // So antwortet eine Canon EOS in PTP auf --get-config batterylevel.
-    const QString canon = QStringLiteral(
-        "Label: Battery Level\n"
-        "Readonly: 0\n"
-        "Type: TEXT\n"
-        "Current: 50%\n"
-        "END\n");
-    QTest::newRow("canon") << canon << 50;
+    // Der haeufigste Fall auf dem Pi: der Dateimanager-Dienst greift zuerst zu.
+    QTest::newRow("belegt, code")
+        << "*** Error (-53: 'Could not claim the USB device') ***"
+        << "belegt";
+    QTest::newRow("belegt, text")
+        << "ERROR: Could not claim the USB device"
+        << "belegt";
+    QTest::newRow("device busy")
+        << "Could not claim the USB device: Device busy"
+        << "belegt";
 
-    QTest::newRow("voll")
-        << QStringLiteral("Label: Battery Level\nCurrent: 100%\nEND\n") << 100;
-    QTest::newRow("leer")
-        << QStringLiteral("Label: Battery Level\nCurrent: 0%\nEND\n") << 0;
-    QTest::newRow("ohne prozentzeichen")
-        << QStringLiteral("Current: 75\n") << 75;
-    QTest::newRow("kleingeschrieben")
-        << QStringLiteral("current: 42%\n") << 42;
-    QTest::newRow("eingerueckt")
-        << QStringLiteral("   Current:   37%   \n") << 37;
-    QTest::newRow("zeilenende windows")
-        << QStringLiteral("Current: 61%\r\n") << 61;
+    QTest::newRow("keine kamera, code")
+        << "*** Error (-105: 'Unknown model') ***"
+        << "Keine Kamera gefunden";
+    QTest::newRow("keine kamera, text")
+        << "*** Error ***\nCould not detect any camera"
+        << "Keine Kamera gefunden";
+    QTest::newRow("no camera found")
+        << "No camera found."
+        << "Keine Kamera gefunden";
 
-    // Alles, was kein Prozentwert ist, gilt als unbekannt.
-    QTest::newRow("spannung")
-        << QStringLiteral("Label: Battery Level\nCurrent: 7.4\nEND\n") << -1;
-    QTest::newRow("wort")
-        << QStringLiteral("Current: Low\n") << -1;
-    QTest::newRow("ueber hundert")
-        << QStringLiteral("Current: 150%\n") << -1;
-    QTest::newRow("negativ")
-        << QStringLiteral("Current: -5%\n") << -1;
-    QTest::newRow("keine zeile")
-        << QStringLiteral("Label: Battery Level\nType: TEXT\nEND\n") << -1;
-    QTest::newRow("leere ausgabe")
-        << QString() << -1;
-    QTest::newRow("fehlermeldung")
-        << QStringLiteral("*** Error ***\nCould not find the requested config\n") << -1;
-    QTest::newRow("keine kamera")
-        << QStringLiteral("*** Error: No camera found. ***\n") << -1;
+    QTest::newRow("autofokus")
+        << "*** Error ***\nCanon EOS Capture failed: Out of Focus"
+        << "Autofokus";
+
+    QTest::newRow("eigene zeitueberschreitung")
+        << "Kamera antwortet nicht"
+        << "antwortet nicht";
+    QTest::newRow("timeout")
+        << "ERROR: Timeout reading from or writing to the port."
+        << "Verbindung";
+    QTest::newRow("ein-ausgabefehler")
+        << "*** Error ***\nAn I/O error occurred"
+        << "Verbindung";
+
+    // Gross- und Kleinschreibung darf keine Rolle spielen: die Meldungen
+    // kommen je nach Version unterschiedlich.
+    QTest::newRow("gross geschrieben")
+        << "COULD NOT DETECT ANY CAMERA"
+        << "Keine Kamera gefunden";
 }
 
-void TestGPhoto::parseBatteryLevel()
+void TestGPhoto::friendlyError()
 {
-    QFETCH(QString, output);
-    QFETCH(int, percent);
+    QFETCH(QString, raw);
+    QFETCH(QString, enthaelt);
 
-    QCOMPARE(CameraGPhoto::parseBatteryLevel(output), percent);
+    const QString text = CameraGPhoto::friendlyError(raw);
+    QVERIFY2(text.contains(enthaelt),
+             qPrintable(QString("\"%1\" ergab \"%2\", erwartet war \"%3\"")
+                            .arg(raw, text, enthaelt)));
+    // Die Rohmeldung gehoert ins Protokoll, nicht auf das Display.
+    QVERIFY2(text != raw, qPrintable(raw));
+}
+
+void TestGPhoto::fullStorageDoesNotBlameTheCamera_data()
+{
+    QTest::addColumn<QString>("raw");
+
+    QTest::newRow("no space")   << "*** Error ***\nNo space left on device";
+    QTest::newRow("store_full") << "*** Error (-1: 'PTP Store Full') ***\nSTORE_FULL";
+    QTest::newRow("card full")  << "ERROR: Card full";
+}
+
+void TestGPhoto::fullStorageDoesNotBlameTheCamera()
+{
+    QFETCH(QString, raw);
+
+    // Die Aufnahme wird sofort heruntergeladen und auf der Kamera nicht
+    // behalten - dort liegt sie nur bis zum Uebertragen. Geht der Platz aus,
+    // ist also der Pi gemeint. Die fruehere Meldung "Speicherkarte der Kamera
+    // ist voll" schickte genau zur falschen Karte.
+    const QString text = CameraGPhoto::friendlyError(raw);
+
+    QVERIFY2(text.contains(QString::fromUtf8("Speicherplatz")), qPrintable(text));
+    QVERIFY2(text.contains("Pi"), qPrintable(text));
+    QVERIFY2(!text.contains(QString::fromUtf8("Speicherkarte der Kamera")), qPrintable(text));
+}
+
+void TestGPhoto::unknownMessagesArePassedThrough()
+{
+    // Was die Zuordnung nicht kennt, darf sie nicht verschlucken: lieber die
+    // englische Originalmeldung als gar keine.
+    const QString fremd = "*** Error ***\nSomething entirely unexpected happened";
+    QCOMPARE(CameraGPhoto::friendlyError(fremd), fremd);
+    QCOMPARE(CameraGPhoto::friendlyError(QString()), QString());
 }
 
 QTEST_GUILESS_MAIN(TestGPhoto)

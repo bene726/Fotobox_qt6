@@ -53,8 +53,8 @@ SettingsPanel::SettingsPanel(const Config& cfg, QWidget* parent)
     m_clock->setObjectName("clock");
     m_clock->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    // Statuszeile darunter: freier Platz und Ladestand. Beides sind stille
-    // Ausfaelle - sie melden sich erst, wenn jemand vor der Box steht.
+    // Statuszeile darunter: der freie Platz. Eine volle Karte ist ein stiller
+    // Ausfall - sie meldet sich erst, wenn jemand vor der Box steht.
     m_status = new QLabel(this);
     m_status->setObjectName("status");
     updateStatusLine();
@@ -211,42 +211,33 @@ void SettingsPanel::setStorage(const Storage::Space& space)
     updateStatusLine();
 }
 
-void SettingsPanel::setBattery(int percent)
-{
-    m_battery = percent;
-    updateStatusLine();
-}
-
 void SettingsPanel::updateStatusLine()
 {
-    QStringList teile;
+    QString text;
     bool warnen = false;
 
     if (!m_space.known) {
-        teile << QString::fromUtf8("Bildordner nicht erreichbar");
+        text = QString::fromUtf8("Bildordner nicht erreichbar");
         warnen = true;
     } else if (m_space.readOnly) {
         // Ein nur lesend eingehaengter Stick nimmt kein einziges Foto an.
-        teile << QString::fromUtf8("Bildordner ist schreibgeschützt");
+        text = QString::fromUtf8("Bildordner ist schreibgeschützt");
         warnen = true;
     } else {
         // Die Anzahl ist wichtiger als die Gigabyte: sie sagt, wie lange es
         // noch reicht. Nur wenn die Schaetzung an die Obergrenze stoesst,
         // bleibt sie weg - "99999 Fotos" waere keine Auskunft.
         if (!m_space.photosLeftMeaningful())
-            teile << QString::fromUtf8("Speicher: %1 frei")
-                         .arg(Storage::humanBytes(m_space.freeBytes));
+            text = QString::fromUtf8("Speicher: %1 frei")
+                       .arg(Storage::humanBytes(m_space.freeBytes));
         else
-            teile << QString::fromUtf8("Speicher: %1 frei, noch rund %2 Fotos")
-                         .arg(Storage::humanBytes(m_space.freeBytes))
-                         .arg(m_space.photosLeft);
+            text = QString::fromUtf8("Speicher: %1 frei, noch rund %2 Fotos")
+                       .arg(Storage::humanBytes(m_space.freeBytes))
+                       .arg(m_space.photosLeft);
         warnen = m_space.level != Storage::Level::Ok;
     }
 
-    if (m_battery >= 0)
-        teile << QString::fromUtf8("Kamera-Akku: %1 %").arg(m_battery);
-
-    m_status->setText(teile.join(QString::fromUtf8("   ·   ")));
+    m_status->setText(text);
 
     // Eigenschaft statt zweitem Stylesheet, damit das Design die Warnfarbe
     // bestimmt und nicht dieser Quelltext.

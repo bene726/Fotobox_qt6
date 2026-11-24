@@ -29,9 +29,8 @@ public:
     void setCameras(const QList<QPair<QString, QString>>& cams, const QString& current,
                     bool switchable);
     void setConfig(const Config& cfg);
-    // Statuszeile: Platz auf dem Datentraeger und Ladestand der Kamera.
+    // Statuszeile unter der Ueberschrift: Platz im Bildordner.
     void setStorage(const Storage::Space& space);
-    void setBattery(int percent);        // -1 = unbekannt, Anzeige entfaellt
     void applyTheme(const Theme& theme);
     void openThemeDropdown();   // fuer Screenshots
     void resetShutdownButton(); // Bestaetigung zuruecknehmen, z.B. beim Schliessen
@@ -62,7 +61,6 @@ private:
 
     QLabel* m_status = nullptr;
     Storage::Space m_space;
-    int m_battery = -1;
     QLabel* m_date = nullptr;
     QLabel* m_clock = nullptr;
     QTimer* m_clockTimer = nullptr;

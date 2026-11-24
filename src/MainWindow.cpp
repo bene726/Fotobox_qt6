@@ -204,7 +204,6 @@ void MainWindow::setupHardware()
     camera = createCamera(cfg, liveCam, this);
     connect(camera, &Camera::captured, this, &MainWindow::onCaptured);
     connect(camera, &Camera::captureFailed, this, &MainWindow::onCaptureFailed);
-    connect(camera, &Camera::batteryLevel, settingsPanel, &SettingsPanel::setBattery);
 
     touch = new TouchInputQt(this);
     connect(touch, &TouchInput::touched, this, &MainWindow::onTouched);
@@ -267,15 +266,6 @@ void MainWindow::refreshStorage()
                         : QString::fromUtf8("Speicher wird knapp: noch %1 frei").arg(frei),
                     6000);
     }
-}
-
-void MainWindow::refreshBattery()
-{
-    // Nur wenn die Kamera ohnehin wach ist. Eine Abfrage weckt eine
-    // Spiegelreflex auf, und staendiges Wecken kostet genau den Akku, dessen
-    // Stand hier angezeigt werden soll.
-    if (camera)
-        camera->requestBatteryLevel();
 }
 
 void MainWindow::applyTheme(const QString& id)
@@ -662,7 +652,6 @@ void MainWindow::openSettings()
     settingsPanel->setCameras(CameraScan::devices(), cfg.liveViewDevice,
                               liveCam && liveCam->canSetDevice());
     refreshStorage();
-    refreshBattery();
     settingsShadow->setVisible(theme.hardShadow);
     settingsPanel->show();
     settingsPanel->raise();
@@ -865,10 +854,8 @@ void MainWindow::onCaptured(const QString& path)
     showOverlayImage(pix);
     photoTimer.start();
 
-    // Nach der Aufnahme ist die Kamera wach und ein Bild mehr liegt im
-    // Ordner: der beste Moment fuer beide Abfragen.
+    // Ein Bild mehr im Ordner: der beste Moment, den Platz nachzurechnen.
     refreshStorage();
-    refreshBattery();
 }
 
 void MainWindow::onCaptureFailed(const QString& error)

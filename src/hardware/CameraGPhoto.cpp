@@ -33,9 +33,11 @@ bool gvfsGphotoRunning()
 }
 #endif
 
+} // namespace
+
 // gphoto2 meldet technisch. Die haeufigen Faelle werden in eine Anweisung
 // uebersetzt, die auf dem Display der Fotobox weiterhilft.
-QString friendlyError(const QString& raw)
+QString CameraGPhoto::friendlyError(const QString& raw)
 {
     const QString r = raw.toLower();
     // Die Fehlercodes von libgphoto2 sind unabhaengig von der Sprache und
@@ -53,14 +55,17 @@ QString friendlyError(const QString& raw)
     if (r.contains("out of focus"))
         return QString::fromUtf8("Autofokus hat nicht ausgelöst. Mehr Licht, "
                                  "oder Objektiv auf manuellen Fokus stellen.");
+    // Die Aufnahme wird sofort heruntergeladen und auf der Kamera nicht
+    // behalten. Geht der Platz aus, ist deshalb fast immer der Pi gemeint -
+    // die alte Meldung schickte zur falschen Karte.
     if (r.contains("no space") || r.contains("store_full") || r.contains("card full"))
-        return QString::fromUtf8("Speicherkarte der Kamera ist voll.");
+        return QString::fromUtf8("Kein Speicherplatz mehr. Meist ist der Pi voll, "
+                                 "nicht die Kamera.");
     if (r.contains("antwortet nicht"))
         return QString::fromUtf8("Kamera antwortet nicht. Kabel prüfen, Kamera aus- und einschalten.");
     if (r.contains("timeout") || r.contains("i/o error"))
         return QString::fromUtf8("Verbindung zur Kamera gestört. Kabel prüfen.");
     return raw;
-}
 }
 
 CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
@@ -76,19 +81,6 @@ CameraGPhoto::CameraGPhoto(const QString& binary, QObject* parent)
 
     connect(&m_proc, &QProcess::finished, this, &CameraGPhoto::onFinished);
     connect(&m_proc, &QProcess::errorOccurred, this, &CameraGPhoto::onError);
-
-    // Akkuabfrage: eigener Prozess, gleiche feste Sprache.
-    m_info.setProcessEnvironment(env);
-    connect(&m_info, &QProcess::finished, this, [this](int code, QProcess::ExitStatus) {
-        const QString out = QString::fromUtf8(m_info.readAllStandardOutput());
-        const int percent = code == 0 ? parseBatteryLevel(out) : -1;
-        if (percent < 0)
-            qInfo() << "Kamera meldet keinen Ladestand";
-        emit batteryLevel(percent);
-    });
-    connect(&m_info, &QProcess::errorOccurred, this, [this](QProcess::ProcessError) {
-        emit batteryLevel(-1);
-    });
 
     // Notbremse: ohne sie bliebe die Fotobox stehen, wenn gphoto2 nicht antwortet.
     m_timeout.setSingleShot(true);
@@ -178,52 +170,3 @@ void CameraGPhoto::onFinished(int exitCode, QProcess::ExitStatus status)
     emit captured(m_file);
 }
 
-void CameraGPhoto::requestBatteryLevel()
-{
-    // Waehrend einer Aufnahme nicht dazwischenfunken: gphoto2 belegt die
-    // Kamera allein, sonst scheitern beide Zugriffe.
-    if (m_busy || m_info.state() != QProcess::NotRunning) {
-        emit batteryLevel(-1);
-        return;
-    }
-
-    m_info.start(m_binary, {"--get-config", "batterylevel"});
-
-    // Notbremse wie bei der Aufnahme. Der Abbruch meldet sich ueber finished
-    // mit einem Code ungleich null und endet damit bei "unbekannt".
-    QTimer::singleShot(kInfoTimeoutMs, this, [this] {
-        if (m_info.state() != QProcess::NotRunning) {
-            qWarning() << "Akkuabfrage antwortet nicht, wird beendet.";
-            m_info.kill();
-        }
-    });
-}
-
-int CameraGPhoto::parseBatteryLevel(const QString& output)
-{
-    // gphoto2 antwortet mehrzeilig:
-    //   Label: Battery Level
-    //   Type: TEXT
-    //   Current: 50%
-    //   END
-    //
-    // Nicht jeder Body liefert Prozent. Manche melden eine Spannung ("7.4")
-    // oder Worte ("Low"); beides ergibt keinen Balken und gilt als unbekannt.
-    const QStringList lines = output.split('\n');
-    for (const QString& line : lines) {
-        const QString t = line.trimmed();
-        if (!t.startsWith(QLatin1String("Current:"), Qt::CaseInsensitive))
-            continue;
-
-        QString value = t.mid(8).trimmed();
-        if (value.endsWith('%'))
-            value.chop(1);
-
-        bool ok = false;
-        const int percent = value.trimmed().toInt(&ok);
-        if (!ok || percent < 0 || percent > 100)
-            return -1;
-        return percent;
-    }
-    return -1;
-}

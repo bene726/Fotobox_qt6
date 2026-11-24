@@ -94,7 +94,6 @@ private:
     void showMessage(const QString& text, int ms = 3000);
 
     void refreshStorage();   // freier Platz im Bildordner
-    void refreshBattery();   // Ladestand der Kamera, nur wenn sie ohnehin wach ist
 
     Config cfg;
     Theme theme;
